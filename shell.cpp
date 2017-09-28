@@ -20,10 +20,10 @@ std::string help();
 
 int main(void) {
 
+	FileSystem fs;
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed
-	std::string currentDir = "/";    // current directory, used for output
-
+	std::string currentDir = fs.currentDir();    // current directory, used for output
     bool bRun = true;
 
     do {

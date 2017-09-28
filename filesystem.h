@@ -21,7 +21,7 @@ public:
     // createFile(...)
 
     /* Creates a folder in the filesystem */
-    // createFolderi(...);
+    void createFolder(char* name);
 
     /* Removes a file in the filesystem */
     // removeFile(...);
@@ -36,6 +36,8 @@ public:
     // listDir(...);
 
     /* Add your own member-functions if needed */
+	std::string currentDir() const;
+
 };
 
 #endif // FILESYSTEM_H

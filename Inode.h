@@ -30,19 +30,22 @@ public:
 	void setName(char *&name);
 	int getID() const;
 	time_t getTimeStamp() const;
-	char* getName() const;
+	const char* getName() const;
 	int getUsedBlocks() const;
 	int getNrOfBlocks() const;
-	int* getBlockIndexes() const;
+	int getBlockIndex(int index) const;
 
 	bool setBlock(int adress);
 
 	char* toBytes() const;
 
+	bool connectInode(const Inode& inode);
+
 private:
 	void cleanup();
 	void copy(const Inode &other);
 	bool copyCharArrln(char buffert[], int &buffertIndex, const char * arr) const ;
+	bool copyIntln(char buffert[], int &buffertIndex, int value) const;
 
 
 };

@@ -3,14 +3,14 @@
 
 void MemBlockDevice::init()
 {
-	Inode root("folder", "root", 0, 0);
-	for (int i = 0; i < 6; i++)
+	Inode root("folder", "/", 0, 0);
+	// Gives the root folder 6 blocks
+	for (int i = 1; i < 7; i++)
 	{
 		root.setBlock(i);
 	}
-
+	freePointer = 7; // Next free block
 	writeBlock(0, root.toBytes());
-
 }
 
 MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks) {

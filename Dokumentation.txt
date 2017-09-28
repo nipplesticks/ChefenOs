@@ -2,3 +2,9 @@
 - Diskuterat hur vi ska lösa uppgiften och kom fram till att göra en variant på i-nodes.
 - Gjort ett försök till att implementera så att "root" skapas. Lite pill så är det klart.
 	Vi stötte på problem med att våra char* var nullptrs men Chefen tror sig veta felet.
+2017-09-28 
+Henrik:
+Löst root implementationen. 
+1. Det var ett fel i CopyCharArrln.
+2. Skrev en CopyCharArrln fast för integers
+3. Fick göra en string som hämtar värden från sstream. 
