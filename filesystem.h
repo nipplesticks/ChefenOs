@@ -45,6 +45,8 @@ private:
 	Return false if name found */
 	bool isNameUnique(char* name);
 
+	bool changeDir(char * folderPath);
+
 };
 
 #endif // FILESYSTEM_H

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include<string>
 #include "filesystem.h"
 
 const int MAXCOMMANDS = 8;
@@ -14,6 +15,9 @@ std::string availableCommands[NUMAVAILABLECOMMANDS] = {
 int parseCommandString(const std::string &userCommand, std::string strArr[]);
 int findCommand(std::string &command);
 bool quit();
+char* getCommandsAsChar(const std::string &command, int expectedCommands, int nrOfCommands);
+
+
 std::string help();
 
 /* More functions ... */
@@ -25,6 +29,8 @@ int main(void) {
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed
 	std::string currentDir = fs.currentDir();    // current directory, used for output
     bool bRun = true;
+
+	char * folderpath = nullptr;
 
     do {
         std::cout << user << ":" << currentDir << "$ ";
@@ -62,7 +68,16 @@ int main(void) {
             case 10: // mv
                 break;
             case 11: // mkdir E
-				fs.createFolder("User");
+				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (folderpath != nullptr)
+				{
+					fs.createFolder(folderpath);
+					delete[] folderpath;
+				}
+				else
+				{
+					std::cout << "mkdir <filepath>" << std::endl;
+				}
                 break;
             case 12: // cd E
                 break; 
@@ -105,6 +120,20 @@ int findCommand(std::string &command) {
 bool quit() {
 	std::cout << "Exiting\n";
 	return false;
+}
+
+char* getCommandsAsChar(const std::string &command, int expectedCommands, int nrOfCommands)
+{
+	char * folderpath = nullptr;
+	if (nrOfCommands == expectedCommands)
+	{
+		folderpath = new char[command.length() + 1];
+		for (int i = 0; i < command.length() + 1; i++)
+		{
+			folderpath[i] = command[i];
+		}
+	}
+	return folderpath;
 }
 
 std::string help() {

@@ -73,6 +73,7 @@ bool Inode::setBlock(int adress)
 
 	return wrote;
 }
+
 /* Return true if there is a block to lock*/
 bool Inode::lockFirstAvailableBlock()
 {
