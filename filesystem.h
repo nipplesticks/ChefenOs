@@ -40,6 +40,8 @@ public:
     /* Add your own member-functions if needed */
 	std::string currentDir() const;
 
+	bool changeDir(char * folderPath);
+
 };
 
 #endif // FILESYSTEM_H

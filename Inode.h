@@ -45,7 +45,7 @@ public:
 	/* Retun free block within the Inode*/
 	int freeBlockInInode();
 	
-	bool writeBlock();
+	bool lockFirstAvailableBlock();
 
 private:
 	void cleanup();

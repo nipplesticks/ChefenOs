@@ -82,7 +82,7 @@ bool Inode::setBlock(int adress)
 	*/
 }
 
-bool Inode::writeBlock()
+bool Inode::lockFirstAvailableBlock()
 {
 	int index = freeBlockInInode();
 	if(index != -1)
