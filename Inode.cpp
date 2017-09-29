@@ -15,7 +15,7 @@ Inode::Inode(char * type, char * name, int id, int InodeBlockAdress)
 
 
 }
-#include <string>
+
 Inode::Inode(const Block & block)
 {
 	std::stringstream data;
@@ -151,10 +151,22 @@ bool Inode::copyCharArrln(char buffert[], int & buffertIndex, const char * arr) 
 
 	return buffertIndex < 511;
 }
-/* Copy integer to char[] buffer */
+/* Copy integer to char[] buffer THis has to be fixed cross-platformed*/
 bool Inode::copyIntln(char buffert[], int & buffertIndex, int value) const
 {
-	// 
+	std::string str = std::to_string(value);
+
+	int index = 0;
+	while (str[index] != '\0')
+	{
+		buffert[buffertIndex++] = str[index++];
+	}
+
+	buffert[buffertIndex++] = '\r';
+	buffert[buffertIndex++] = '\n';
+
+	return buffertIndex < 511;
+	/*
 	char integerBuffer[65];
 
 	_itoa_s(value, integerBuffer, 65, 10);
@@ -166,6 +178,7 @@ bool Inode::copyIntln(char buffert[], int & buffertIndex, int value) const
 	buffert[buffertIndex++] = '\r';
 	buffert[buffertIndex++] = '\n';
 	return buffertIndex < 511;
+	*/
 }
 
 Inode & Inode::operator=(const Inode & other)

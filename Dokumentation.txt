@@ -8,3 +8,8 @@ Löst root implementationen.
 1. Det var ett fel i CopyCharArrln.
 2. Skrev en CopyCharArrln fast för integers
 3. Fick göra en string som hämtar värden från sstream. 
+
+2017-09-29
+Fixade crossplatform fix
+ls funktionen borde vara klar.
+Vi ska fixa en standard på hur "type" är.
