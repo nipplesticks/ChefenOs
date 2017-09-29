@@ -13,11 +13,17 @@ FileSystem::~FileSystem()
 // WORK IN PROGRESS
 void FileSystem::createFolder(char * folderName)
 {
-	Inode* newInode = new Inode("Folder", folderName, 0, currentInode->getInodeBlockAdress());
+	Inode* newInode = new Inode("/", folderName, currentInode->freeBlockInInode(), currentInode->getInodeBlockAdress());
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 	for (int i = 0; i < newInode->getNrOfBlocks(); i++)
 		newInode->setBlock(freeBlocks[i]);
 	delete freeBlocks;
+
+	int writeIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
+
+	currentInode->writeBlock();
+	mMemblockDevice.writeBlock(currentInode->getInodeBlockAdress(), currentInode->toBytes());
+	mMemblockDevice.writeBlock(writeIndex, newInode->toBytes());
 	// Skapa noden klart
 	// Ge den blocks
 	// Sätta in noden i en ledig plats i currentNode
@@ -33,11 +39,13 @@ std::string FileSystem::listDir() const
 
 	for (int i = 0; i < nrOfBlocks; i++)
 	{
-		blockIndexes = currentInode->getBlockIndex[i];
-		if (blockIndexes[i] != NOT_USED)
+		blockIndexes[i] = currentInode->getBlockIndex(i);
+		if (currentInode->ifUsedBlock(i))
 		{
 			Inode printer(mMemblockDevice.readBlock(blockIndexes[i]));
-			lsStr += printer.getName() + printer.getType() + "\n";
+			lsStr += printer.getName();
+			lsStr += printer.getType();
+			lsStr += "\n";
 		}
 		else
 		{
@@ -52,7 +60,9 @@ std::string FileSystem::listDir() const
 
 std::string FileSystem::currentDir() const
 {
-	return currentInode->getName();
+	std::string dir = currentInode->getName();
+	dir += currentInode->getType();
+	return dir;
 }
 
 

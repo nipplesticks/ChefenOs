@@ -17,7 +17,7 @@ private:
 	int InodeBlockAdress;
 	time_t timestamp;
 	int nrOfBlocks;
-	int usedBlocks;
+	bool usedBlocks[12];
 	int blockIndexes[12];
 
 	Inode& operator=(const Inode &other);
@@ -34,7 +34,7 @@ public:
 	time_t getTimeStamp() const;
 	const char* getType() const;
 	const char* getName() const;
-	int getUsedBlocks() const;
+	bool ifUsedBlock(int index)  const;
 	int getNrOfBlocks() const;
 	int getBlockIndex(int index) const;
 
@@ -44,6 +44,8 @@ public:
 	
 	/* Retun free block within the Inode*/
 	int freeBlockInInode();
+	
+	bool writeBlock();
 
 private:
 	void cleanup();

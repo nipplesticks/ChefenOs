@@ -43,6 +43,7 @@ int main(void) {
                 break;
             case 2: // ls E
                 std::cout << "Listing directory" << std::endl;
+				std::cout << fs.listDir();
                 break;
             case 3: // create E
                 break;
@@ -61,6 +62,7 @@ int main(void) {
             case 10: // mv
                 break;
             case 11: // mkdir E
+				fs.createFolder("User");
                 break;
             case 12: // cd E
                 break; 

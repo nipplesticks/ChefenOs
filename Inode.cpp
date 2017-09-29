@@ -5,11 +5,11 @@ Inode::Inode(char * type, char * name, int id, int InodeBlockAdress)
 {
 	timestamp = time(0);
 	nrOfBlocks = 12;
-	usedBlocks = 0;
 	
-	for (int i = 0; i < nrOfBlocks; i++)
+	for (int i = 0; i < nrOfBlocks ; i++)
 	{
 		blockIndexes[i] = NOT_USED;
+		usedBlocks[i] = false;
 	}
 
 
@@ -40,7 +40,8 @@ Inode::Inode(const Block & block)
 	data >> InodeBlockAdress;
 	data >> timestamp;
 	data >> nrOfBlocks;
-	data >> usedBlocks;
+	for (int i = 0; i < nrOfBlocks; i++)
+		data >> usedBlocks[i];
 	for (int i = 0; i < nrOfBlocks; i++)
 	{
 		data >> blockIndexes[i];
@@ -59,10 +60,20 @@ Inode::~Inode()
 
 bool Inode::setBlock(int adress)
 {
-	bool inRange = usedBlocks != nrOfBlocks;
-	if (inRange)
-		blockIndexes[usedBlocks++] = adress;
-	return inRange;
+	int index = freeBlockInInode();
+	if (index != -1)
+	{
+		blockIndexes[index] = adress;
+	}
+	return index != -1;
+}
+
+bool Inode::writeBlock()
+{
+	int index = freeBlockInInode();
+	if(index != -1)
+		usedBlocks[index] = true;
+	return index != -1;
 }
 
 char * Inode::toBytes() const
@@ -76,9 +87,12 @@ char * Inode::toBytes() const
 		copyIntln(buffert, buffertIndex, id) &&
 		copyIntln(buffert, buffertIndex, InodeBlockAdress) &&
 		copyIntln(buffert, buffertIndex, timestamp) &&
-		copyIntln(buffert, buffertIndex, nrOfBlocks) &&
-		copyIntln(buffert, buffertIndex, usedBlocks))
+		copyIntln(buffert, buffertIndex, nrOfBlocks))
 	{
+		for (int i = 0; i < nrOfBlocks; i++)
+		{
+			copyIntln(buffert, buffertIndex, usedBlocks[i]);
+		}
 		for (int i = 0; i < nrOfBlocks; i++)
 		{
 			
@@ -102,15 +116,11 @@ int Inode::freeBlockInInode()
 {
 	int index = 0;
 	for (; index < nrOfBlocks; index++)
-		if (blockIndexes[index] == NOT_USED)
+		if (usedBlocks[index] == false)
 			break;
 		else
 			return -1;
-
-	usedBlocks++;
-
 	return index;
-	return 0;
 }
 
 
@@ -129,7 +139,8 @@ void Inode::copy(const Inode & other)
 	InodeBlockAdress = other.InodeBlockAdress;
 
 	timestamp = other.timestamp;
-	usedBlocks = other.usedBlocks;
+	for(int i = 0; i < nrOfBlocks;i++)
+		usedBlocks[i] = other.usedBlocks[i];
 	nrOfBlocks = other.nrOfBlocks;
 	for (int i = 0; i < nrOfBlocks; i++)
 	{
@@ -223,9 +234,9 @@ const char * Inode::getName() const
 	return name;
 }
 
-int Inode::getUsedBlocks() const
+bool Inode::ifUsedBlock(int index) const
 {
-	return usedBlocks;
+	return usedBlocks[index];
 }
 
 int Inode::getNrOfBlocks() const
