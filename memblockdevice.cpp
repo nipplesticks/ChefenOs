@@ -5,7 +5,7 @@ void MemBlockDevice::init()
 {
 	Inode root("/", "root", 0, 0);
 	// Gives the root folder 12 blocks
-	for (int i = 1; i < root.getNrOfBlocks(); i++)
+	for (int i = 1; i < root.getNrOfBlocks() + 1; i++)
 	{
 		root.setBlock(i);
 	}

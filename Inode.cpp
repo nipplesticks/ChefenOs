@@ -1,7 +1,7 @@
 #include "Inode.h"
 
-Inode::Inode(char * type, char * name, int id, int InodeBlockAdress) 
-	: type(type), name(name), id(id), InodeBlockAdress(InodeBlockAdress)
+Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc) 
+	: type(type), name(name), hddLoc(hddLoc), parentHDDLoc(parentHDDLoc)
 {
 	timestamp = time(0);
 	nrOfBlocks = 12;
@@ -36,8 +36,8 @@ Inode::Inode(const Block & block)
 		name[i] = StringConverter[i];
 	name[size - 1] = '\0';;
 
-	data >> id;
-	data >> InodeBlockAdress;
+	data >> hddLoc;
+	data >> parentHDDLoc;
 	data >> timestamp;
 	data >> nrOfBlocks;
 	for (int i = 0; i < nrOfBlocks; i++)
@@ -60,12 +60,26 @@ Inode::~Inode()
 
 bool Inode::setBlock(int adress)
 {
+	bool wrote = false;
+	for (int i = 0; i < nrOfBlocks && !wrote; i++)
+	{
+		if (blockIndexes[i] == -1)
+		{
+			blockIndexes[i] = adress;
+			wrote = true;
+		}
+	}
+
+	return wrote;
+
+	/*
 	int index = freeBlockInInode();
 	if (index != -1)
 	{
 		blockIndexes[index] = adress;
 	}
 	return index != -1;
+	*/
 }
 
 bool Inode::writeBlock()
@@ -84,8 +98,8 @@ char * Inode::toBytes() const
 
 	if (copyCharArrln(buffert, buffertIndex, type) &&
 		copyCharArrln(buffert, buffertIndex, name) &&
-		copyIntln(buffert, buffertIndex, id) &&
-		copyIntln(buffert, buffertIndex, InodeBlockAdress) &&
+		copyIntln(buffert, buffertIndex, hddLoc) &&
+		copyIntln(buffert, buffertIndex, parentHDDLoc) &&
 		copyIntln(buffert, buffertIndex, timestamp) &&
 		copyIntln(buffert, buffertIndex, nrOfBlocks))
 	{
@@ -115,12 +129,14 @@ char * Inode::toBytes() const
 int Inode::freeBlockInInode()
 {
 	int index = 0;
-	for (; index < nrOfBlocks; index++)
+	bool found = false;
+	for (; index < nrOfBlocks && !found;index++)
+	{
 		if (usedBlocks[index] == false)
-			break;
-		else
-			return -1;
-	return index;
+			found = true;
+			
+	}
+	return found ? (index - 1) : -1;
 }
 
 
@@ -135,8 +151,8 @@ void Inode::copy(const Inode & other)
 	// Yttlig kopiering
 	name = other.name;
 	type = other.type;
-	id = other.id;
-	InodeBlockAdress = other.InodeBlockAdress;
+	hddLoc = other.hddLoc;
+	parentHDDLoc = other.parentHDDLoc;
 
 	timestamp = other.timestamp;
 	for(int i = 0; i < nrOfBlocks;i++)
@@ -208,15 +224,15 @@ void Inode::setName(char *& name)
 	this->name = name;
 }
 
-int Inode::getID() const
+int Inode::getHDDLoc() const
 {
-	return id;
+	return hddLoc;
 }
 
-int Inode::getInodeBlockAdress() const
+int Inode::getParentHDDLoc() const
 {
 
-	return InodeBlockAdress;
+	return parentHDDLoc;
 }
 
 time_t Inode::getTimeStamp() const

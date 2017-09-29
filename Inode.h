@@ -13,8 +13,8 @@ private:
 	
 	char* type;
 	char* name;
-	int id;
-	int InodeBlockAdress;
+	int hddLoc;
+	int parentHDDLoc;
 	time_t timestamp;
 	int nrOfBlocks;
 	bool usedBlocks[12];
@@ -22,15 +22,15 @@ private:
 
 	Inode& operator=(const Inode &other);
 public:
-	Inode(char * type, char * name, int id, int InodeBlockAdress);
+	Inode(char * type, char * name, int hddLoc, int parentHDDLoc);
 	Inode(const Block & block);
 	Inode(const Inode &other);
 
 	~Inode();
 
 	void setName(char *&name);
-	int getID() const;
-	int getInodeBlockAdress() const;
+	int getHDDLoc() const;
+	int getParentHDDLoc() const;
 	time_t getTimeStamp() const;
 	const char* getType() const;
 	const char* getName() const;

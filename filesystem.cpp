@@ -13,17 +13,18 @@ FileSystem::~FileSystem()
 // WORK IN PROGRESS
 void FileSystem::createFolder(char * folderName)
 {
-	Inode* newInode = new Inode("/", folderName, currentInode->freeBlockInInode(), currentInode->getInodeBlockAdress());
+	int writeIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
+	Inode* newInode = new Inode("/", folderName, writeIndex, currentInode->getHDDLoc());
+
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 	for (int i = 0; i < newInode->getNrOfBlocks(); i++)
 		newInode->setBlock(freeBlocks[i]);
 	delete freeBlocks;
 
-	int writeIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
 
 	currentInode->writeBlock();
-	mMemblockDevice.writeBlock(currentInode->getInodeBlockAdress(), currentInode->toBytes());
-	mMemblockDevice.writeBlock(writeIndex, newInode->toBytes());
+	mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentInode->toBytes());
+	mMemblockDevice.writeBlock(newInode->getHDDLoc(), newInode->toBytes());
 	// Skapa noden klart
 	// Ge den blocks
 	// Sätta in noden i en ledig plats i currentNode
