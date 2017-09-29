@@ -34,18 +34,20 @@ public:
 	time_t getTimeStamp() const;
 	const char* getType() const;
 	const char* getName() const;
+
+	/* Return true if block is in use */
 	bool ifUsedBlock(int index)  const;
 	int getNrOfBlocks() const;
 	int getBlockIndex(int index) const;
 
 	bool setBlock(int adress);
 
-	char* toBytes() const;
+	char* toCharArray() const;
 	
 	/* Retun free block within the Inode*/
 	int freeBlockInInode();
 	
-	bool writeBlock();
+	bool lockFirstAvailableBlock();
 
 private:
 	void cleanup();

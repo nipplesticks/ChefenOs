@@ -38,7 +38,13 @@ public:
 
 
     /* Add your own member-functions if needed */
+	/* Return current INode name+type*/
 	std::string currentDir() const;
+private:
+	// Help functions
+	/* Compares all the names in the current Inode
+	Return false if name found */
+	bool isNameUnique(char* name);
 
 };
 
