@@ -33,7 +33,8 @@ public:
     // goToFolder(...);
 
     /* This function will get all the files and folders in the specified folder */
-    // listDir(...);
+	std::string listDir() const;
+
 
     /* Add your own member-functions if needed */
 	std::string currentDir() const;
