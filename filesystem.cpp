@@ -10,28 +10,22 @@ FileSystem::~FileSystem()
 {
 
 }
-// WORK IN PROGRESS
+/* Creates a folder entry in the current INode*/
 void FileSystem::createFolder(char * folderName)
 {
-	int writeIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
-	Inode* newInode = new Inode("/", folderName, writeIndex, currentInode->getHDDLoc());
+	int hddWriteIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
+	Inode* newInode = new Inode("/", folderName, hddWriteIndex, currentInode->getHDDLoc());
 
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 	for (int i = 0; i < newInode->getNrOfBlocks(); i++)
 		newInode->setBlock(freeBlocks[i]);
 	delete freeBlocks;
 
-
-	currentInode->writeBlock();
+	currentInode->lockFirstAvailableBlock();
 	mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentInode->toBytes());
 	mMemblockDevice.writeBlock(newInode->getHDDLoc(), newInode->toBytes());
-	// Skapa noden klart
-	// Ge den blocks
-	// Sätta in noden i en ledig plats i currentNode
-	// Skriver till disk i den platsen
-	// Skriver currentNode till disken 
 }
-
+/* Lists all available entires in current INode*/
 std::string FileSystem::listDir() const
 {
 	int nrOfBlocks = currentInode->getNrOfBlocks();
@@ -58,7 +52,7 @@ std::string FileSystem::listDir() const
 
 	return lsStr;
 }
-
+/* Return current I-Node name+type*/
 std::string FileSystem::currentDir() const
 {
 	std::string dir = currentInode->getName();
