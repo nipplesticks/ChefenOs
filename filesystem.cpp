@@ -39,7 +39,7 @@ std::string FileSystem::listDir() const
 	int * blockIndexes = new int[nrOfBlocks];
 	std::string lsStr = "";
 
-	for (int i = 0; i < nrOfBlocks; i++)
+	for (int i = 1; i < nrOfBlocks; i++)
 	{
 		blockIndexes[i] = currentInode->getBlockIndex(i);
 		if (currentInode->ifUsedBlock(i))
@@ -131,22 +131,39 @@ Inode * FileSystem::walkDir(Inode* currentDirectory, char * next)
 	}
 	toNextFolder[walker] = '\0';
 	//Hitta mappen i current directory
-	for (int i = 0; i < currentDirectory->getNrOfBlocks() && inThisFolder[0] != '\0'; i++)
+	Block currentBlock;
+	if (!strcmp(inThisFolder, ".."))
 	{
-		if (currentDirectory->ifUsedBlock(i))
-		{
-			Block currentBlock = mMemblockDevice.readBlock(currentDirectory->getBlockIndex(i));
-			
-			Inode * temp = new Inode(currentBlock);
-			if (!strcmp(temp->getName(), inThisFolder))
-			{
-				delete currentDirectory;
-				currentDirectory = new Inode(*temp);
-				return walkDir(currentDirectory, toNextFolder);
-			}
-		}
-
+		currentBlock = mMemblockDevice.readBlock(currentDirectory->getBlockIndex(0));
+		Inode * temp = new Inode(currentBlock);
+		delete currentDirectory;
+		currentDirectory = new Inode(*temp);
+		delete temp;
+		return walkDir(currentDirectory, toNextFolder);
 	}
+	else
+	{
+		for (int i = 0; i < currentDirectory->getNrOfBlocks() && inThisFolder[0] != '\0'; i++)
+		{
+			if (currentDirectory->ifUsedBlock(i))
+			{
+				Block currentBlock = mMemblockDevice.readBlock(currentDirectory->getBlockIndex(i));
+
+				Inode * temp = new Inode(currentBlock);
+				if (!strcmp(temp->getName(), inThisFolder))
+				{
+					delete currentDirectory;
+					currentDirectory = new Inode(*temp);
+					delete temp;
+					return walkDir(currentDirectory, toNextFolder);
+				}
+
+			}
+
+		}
+	}
+	
+	
 
 	if (next[0] == '\0')
 	{

@@ -6,7 +6,10 @@ Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc)
 	timestamp = time(0);
 	nrOfBlocks = 12;
 	
-	for (int i = 0; i < nrOfBlocks ; i++)
+	this->blockIndexes[0] = this->parentHDDLoc;
+	this->usedBlocks[0] = true;
+
+	for (int i = 1; i < nrOfBlocks ; i++)
 	{
 		blockIndexes[i] = NOT_USED;
 		usedBlocks[i] = false;
