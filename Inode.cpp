@@ -148,9 +148,9 @@ void Inode::copy(const Inode & other)
 	parentHDDLoc = other.parentHDDLoc;
 
 	timestamp = other.timestamp;
+	nrOfBlocks = other.nrOfBlocks;
 	for(int i = 0; i < nrOfBlocks;i++)
 		usedBlocks[i] = other.usedBlocks[i];
-	nrOfBlocks = other.nrOfBlocks;
 	for (int i = 0; i < nrOfBlocks; i++)
 	{
 		blockIndexes[i] = other.blockIndexes[i];

@@ -28,7 +28,7 @@ public:
     // removeFile(...);
 
     /* Removes a folder in the filesystem */
-    bool removeFolder(...);
+    bool removeFolder();
 
     /* Function will move the current location to a specified location in the filesystem */
     // goToFolder(...);
