@@ -34,6 +34,8 @@ public:
 
     /* Return the size */
     int size() const;
+	/* Return freeblockadresses*/
+	int* getFreeBlockAdresses();
 };
 
 #endif // MEMBLOCKDEVICE_H

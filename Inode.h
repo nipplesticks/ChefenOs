@@ -13,7 +13,7 @@ private:
 	char* type;
 	char* name;
 	int id;
-	int up;
+	int InodeBlockAdress;
 	time_t timestamp;
 	int nrOfBlocks;
 	int usedBlocks;
@@ -21,7 +21,7 @@ private:
 
 	Inode& operator=(const Inode &other);
 public:
-	Inode(char * type, char * name, int id, int up);
+	Inode(char * type, char * name, int id, int InodeBlockAdress);
 	Inode(const Block & block);
 	Inode(const Inode &other);
 
@@ -29,7 +29,9 @@ public:
 
 	void setName(char *&name);
 	int getID() const;
+	int getInodeBlockAdress() const;
 	time_t getTimeStamp() const;
+	const char* getType() const;
 	const char* getName() const;
 	int getUsedBlocks() const;
 	int getNrOfBlocks() const;
@@ -38,8 +40,9 @@ public:
 	bool setBlock(int adress);
 
 	char* toBytes() const;
-
-	bool connectInode(const Inode& inode);
+	
+	/* Retun free block within the Inode*/
+	int freeBlockInInode();
 
 private:
 	void cleanup();

@@ -1,6 +1,7 @@
 #include "Inode.h"
 
-Inode::Inode(char * type, char * name, int id, int up) : type(type), name(name), id(id), up(up)
+Inode::Inode(char * type, char * name, int id, int InodeBlockAdress) 
+	: type(type), name(name), id(id), InodeBlockAdress(InodeBlockAdress)
 {
 	timestamp = time(0);
 	nrOfBlocks = 12;
@@ -36,7 +37,7 @@ Inode::Inode(const Block & block)
 	name[size - 1] = '\0';;
 
 	data >> id;
-	data >> up;
+	data >> InodeBlockAdress;
 	data >> timestamp;
 	data >> nrOfBlocks;
 	data >> usedBlocks;
@@ -73,7 +74,7 @@ char * Inode::toBytes() const
 	if (copyCharArrln(buffert, buffertIndex, type) &&
 		copyCharArrln(buffert, buffertIndex, name) &&
 		copyIntln(buffert, buffertIndex, id) &&
-		copyIntln(buffert, buffertIndex, up) &&
+		copyIntln(buffert, buffertIndex, InodeBlockAdress) &&
 		copyIntln(buffert, buffertIndex, timestamp) &&
 		copyIntln(buffert, buffertIndex, nrOfBlocks) &&
 		copyIntln(buffert, buffertIndex, usedBlocks))
@@ -97,20 +98,21 @@ char * Inode::toBytes() const
 
 	return buffert;
 }
-// WORK IN PROGRESS
-bool Inode::connectInode(const Inode & inode)
+int Inode::freeBlockInInode()
 {
 	int index = 0;
 	for (; index < nrOfBlocks; index++)
-		if (blockIndexes[index] != NOT_USED)
+		if (blockIndexes[index] == NOT_USED)
 			break;
 		else
-			return false;
+			return -1;
 
+	usedBlocks++;
 
-	
-	return false;
+	return index;
+	return 0;
 }
+
 
 void Inode::cleanup()
 {
@@ -124,7 +126,7 @@ void Inode::copy(const Inode & other)
 	name = other.name;
 	type = other.type;
 	id = other.id;
-	up = other.up;
+	InodeBlockAdress = other.InodeBlockAdress;
 
 	timestamp = other.timestamp;
 	usedBlocks = other.usedBlocks;
@@ -187,9 +189,20 @@ int Inode::getID() const
 	return id;
 }
 
+int Inode::getInodeBlockAdress() const
+{
+
+	return InodeBlockAdress;
+}
+
 time_t Inode::getTimeStamp() const
 {
 	return timestamp;
+}
+
+const char * Inode::getType() const
+{
+	return type;
 }
 
 const char * Inode::getName() const

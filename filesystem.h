@@ -9,6 +9,7 @@ class FileSystem
 private:
     MemBlockDevice mMemblockDevice;
 	Inode* currentInode;
+
 public:
     FileSystem();
     ~FileSystem();
@@ -21,7 +22,7 @@ public:
     // createFile(...)
 
     /* Creates a folder in the filesystem */
-    void createFolder(char* name);
+    void createFolder(char* folderName);
 
     /* Removes a file in the filesystem */
     // removeFile(...);

@@ -4,16 +4,18 @@
 void MemBlockDevice::init()
 {
 	Inode root("folder", "/", 0, 0);
-	// Gives the root folder 6 blocks
-	for (int i = 1; i < 7; i++)
+	// Gives the root folder 12 blocks
+	for (int i = 1; i < root.getNrOfBlocks(); i++)
 	{
 		root.setBlock(i);
 	}
-	freePointer = 7; // Next free block
+	freePointer = root.getNrOfBlocks; // Next free block
 	writeBlock(0, root.toBytes());
 }
 
-MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks) {
+MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks) 
+{
+
 	init();
 }
 
@@ -101,4 +103,15 @@ void MemBlockDevice::reset() {
 
 int MemBlockDevice::size() const {
     return this->nrOfBlocks;
+}
+
+int * MemBlockDevice::getFreeBlockAdresses() 
+{
+	int* blocks = new int[12];
+	// Gives 12 free blocks
+	for (unsigned i = 0; i < 12; i++)
+	{
+		blocks[i] = freePointer++;
+	}
+	return blocks;
 }

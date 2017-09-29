@@ -25,6 +25,7 @@ public:
     virtual Block readBlock(int blockNr) const = 0;
     virtual void reset() = 0;
     virtual int size() const = 0;
+
 };
 
 #endif // BLOCKDEVICE_H
