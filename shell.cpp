@@ -48,7 +48,6 @@ int main(void) {
             case 1: // format E
                 break;
             case 2: // ls E
-                std::cout << "Listing directory" << std::endl;
 				std::cout << fs.listDir();
                 break;
             case 3: // create E
