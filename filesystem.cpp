@@ -89,7 +89,7 @@ void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
 		currentDirectory = str;
 }
 
-
+/* Think this will become easier one day, NOT FINISHED and NOT IN USE ATM */
 bool FileSystem::changeDir2(char * folderPath)
 {
 	// Initialize variables
