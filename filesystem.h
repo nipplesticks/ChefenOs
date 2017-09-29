@@ -36,7 +36,6 @@ public:
     /* This function will get all the files and folders in the specified folder */
 	std::string listDir() const;
 
-
     /* Add your own member-functions if needed */
 	/* Return current INode name+type*/
 	std::string currentDir() const;
