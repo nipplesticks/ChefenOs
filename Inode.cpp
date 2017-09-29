@@ -246,7 +246,7 @@ const char * Inode::getName() const
 	return name;
 }
 /* Return true if block is in use */
-bool Inode::ifUsedBlock(int index) const
+bool Inode::isBlockUsed(int index) const
 {
 	return usedBlocks[index];
 }

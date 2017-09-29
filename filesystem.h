@@ -9,6 +9,7 @@ class FileSystem
 private:
     MemBlockDevice mMemblockDevice;
 	Inode* currentInode;
+	std::string currentDirectory;
 
 public:
     FileSystem();
@@ -40,16 +41,22 @@ public:
 	/* Return current INode name+type*/
 	std::string currentDir() const;
 
+	void setCurrentDirStr(const std::string& str, bool remove);
+
+	bool changeDir2(char* folderPath);
 	bool changeDir(char * folderPath);
 
 private:
 	// Help functions
+
 	/* Compares all the names in the current Inode
 	Return false if name found */
-	bool isNameUnique(char* name);
-	Inode* walkDir(Inode* currentDirectory, char * next);
-	
+	bool isNameUnique(const char* name);
 
+	Inode* walkDir(Inode* currentDirectory, char * next);
+
+	/* Splits a char* into strings based on '/' */
+	std::string* seperateSlashes(char* filepath, int& size) const;
 };
 
 #endif // FILESYSTEM_H

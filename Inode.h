@@ -36,7 +36,7 @@ public:
 	const char* getName() const;
 
 	/* Return true if block is in use */
-	bool ifUsedBlock(int index)  const;
+	bool isBlockUsed(int index)  const;
 	int getNrOfBlocks() const;
 	int getBlockIndex(int index) const;
 
