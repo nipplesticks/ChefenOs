@@ -64,6 +64,19 @@ std::string FileSystem::currentDir() const
 	dir += currentInode->getType();
 	return dir;
 }
+bool FileSystem::changeDir(char * folderPath)
+{
+	Inode * walker = new Inode(*currentInode);
+	Inode* temp = walkDir(walker, folderPath);
+	if (temp != nullptr)
+	{
+		delete currentInode;
+		currentInode = temp;
+	}
+
+
+	return temp != nullptr;
+}
 /* Compares all the names in the current Inode
 Return false if name found */
 bool FileSystem::isNameUnique(char * name)
@@ -83,6 +96,70 @@ bool FileSystem::isNameUnique(char * name)
 		}
 	delete[] names;
 	return true;
+}
+
+Inode * FileSystem::walkDir(Inode* currentDirectory, char * next)
+{
+	int index = 0;
+	int walker = 0;
+	bool foundSlash = false;
+	char inThisFolder[25];
+	char toNextFolder[4096];
+
+	//find current Folder
+	while (next[index] != '\0' && !foundSlash)
+	{
+		if (next[index] != '/')
+		{
+			inThisFolder[walker++] = next[index++];
+		}
+		else
+		{
+			foundSlash = true;
+		}
+	}
+	
+	inThisFolder[walker] = '\0';
+	if (next[index] != '\0')
+	{
+		index++;
+	}
+	walker = 0;
+	while (next[index] != '\0')
+	{
+		toNextFolder[walker++] = next[index++];
+	}
+	toNextFolder[walker] = '\0';
+	//Hitta mappen i current directory
+	for (int i = 0; i < currentDirectory->getNrOfBlocks() && inThisFolder[0] != '\0'; i++)
+	{
+		if (currentDirectory->ifUsedBlock(i))
+		{
+			Block currentBlock = mMemblockDevice.readBlock(currentDirectory->getBlockIndex(i));
+			
+			Inode * temp = new Inode(currentBlock);
+			if (!strcmp(temp->getName(), inThisFolder))
+			{
+				delete currentDirectory;
+				currentDirectory = new Inode(*temp);
+				return walkDir(currentDirectory, toNextFolder);
+			}
+		}
+
+	}
+
+	if (next[0] == '\0')
+	{
+		return currentDirectory;
+	}
+
+	return nullptr;
+	//Läser från disk och hämtar mappens Inode
+	//Kalla funktionen igen fast med nya Inode pekaren och 
+	// resterande path. 
+
+
+	return nullptr;
 }
 
 

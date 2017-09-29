@@ -48,7 +48,7 @@ int main(void) {
             case 1: // format E
                 break;
             case 2: // ls E
-				std::cout << fs.listDir();
+				std::cout << fs.listDir() << std::endl;
                 break;
             case 3: // create E
                 break;
@@ -75,10 +75,21 @@ int main(void) {
 				}
 				else
 				{
-					std::cout << "mkdir <filepath>" << std::endl;
+					std::cout << "mkdir <folderpath>" << std::endl;
 				}
                 break;
             case 12: // cd E
+				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (folderpath != nullptr)
+				{
+					fs.changeDir(folderpath);
+					delete[] folderpath;
+					currentDir = fs.currentDir();
+				}
+				else
+				{
+					std::cout << "cd <filepath>" << std::endl;
+				}
                 break; 
             case 13: // pwd E
                 break;
