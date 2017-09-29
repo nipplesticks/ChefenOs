@@ -57,7 +57,8 @@ Inode::~Inode()
 {
 	cleanup();
 }
-
+/* Sets first available block to inputed adress.
+Return true if there is available blocks to write*/
 bool Inode::setBlock(int adress)
 {
 	bool wrote = false;
@@ -71,17 +72,9 @@ bool Inode::setBlock(int adress)
 	}
 
 	return wrote;
-
-	/*
-	int index = freeBlockInInode();
-	if (index != -1)
-	{
-		blockIndexes[index] = adress;
-	}
-	return index != -1;
-	*/
 }
 
+/* Return true if there is a block to lock*/
 bool Inode::lockFirstAvailableBlock()
 {
 	int index = freeBlockInInode();
@@ -89,8 +82,8 @@ bool Inode::lockFirstAvailableBlock()
 		usedBlocks[index] = true;
 	return index != -1;
 }
-
-char * Inode::toBytes() const
+/*Converts all variables into a char array*/
+char * Inode::toCharArray() const
 {
 	char *buffert = new char[512];
 	int buffertIndex = 0;
@@ -249,7 +242,7 @@ const char * Inode::getName() const
 {
 	return name;
 }
-
+/* Return true if block is in use */
 bool Inode::ifUsedBlock(int index) const
 {
 	return usedBlocks[index];

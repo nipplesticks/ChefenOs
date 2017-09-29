@@ -8,22 +8,29 @@ FileSystem::FileSystem()
 
 FileSystem::~FileSystem()
 {
-
+	delete currentInode;
 }
 /* Creates a folder entry in the current INode*/
 void FileSystem::createFolder(char * folderName)
 {
-	int hddWriteIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
-	Inode* newInode = new Inode("/", folderName, hddWriteIndex, currentInode->getHDDLoc());
+	if (isNameUnique(folderName))
+	{
+		int hddWriteIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
+		Inode* newInode = new Inode("/", folderName, hddWriteIndex, currentInode->getHDDLoc());
 
-	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-	for (int i = 0; i < newInode->getNrOfBlocks(); i++)
-		newInode->setBlock(freeBlocks[i]);
-	delete freeBlocks;
+		int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
+		for (int i = 0; i < newInode->getNrOfBlocks(); i++)
+			newInode->setBlock(freeBlocks[i]);
+		delete freeBlocks;
 
-	currentInode->lockFirstAvailableBlock();
-	mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentInode->toBytes());
-	mMemblockDevice.writeBlock(newInode->getHDDLoc(), newInode->toBytes());
+		if (currentInode->lockFirstAvailableBlock())
+		{
+			mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentInode->toCharArray());
+			mMemblockDevice.writeBlock(newInode->getHDDLoc(), newInode->toCharArray());
+
+		}
+	}
+	
 }
 /* Lists all available entires in current INode*/
 std::string FileSystem::listDir() const
@@ -48,8 +55,6 @@ std::string FileSystem::listDir() const
 		}
 	}
 
-	
-
 	return lsStr;
 }
 /* Return current I-Node name+type*/
@@ -58,6 +63,26 @@ std::string FileSystem::currentDir() const
 	std::string dir = currentInode->getName();
 	dir += currentInode->getType();
 	return dir;
+}
+/* Compares all the names in the current Inode
+Return false if name found */
+bool FileSystem::isNameUnique(char * name)
+{
+	//Read available blocks and store names
+	int numberOfBlocks = currentInode->getNrOfBlocks();
+	std::string* names = new std::string[numberOfBlocks];
+	for(int i = 0; i < numberOfBlocks; i++)
+		if (currentInode->ifUsedBlock(i))
+		{
+			Block currentBlock = mMemblockDevice.readBlock(currentInode->getBlockIndex(i));
+			Inode curInode(currentBlock);
+			names[i] = curInode.getName();
+			if (name == names[i])
+				return false;
+
+		}
+	delete[] names;
+	return true;
 }
 
 

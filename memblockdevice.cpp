@@ -10,7 +10,7 @@ void MemBlockDevice::init()
 		root.setBlock(i);
 	}
 	freePointer = root.getNrOfBlocks(); // Next free block
-	writeBlock(0, root.toBytes());
+	writeBlock(0, root.toCharArray());
 }
 
 MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks) 
