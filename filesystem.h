@@ -20,7 +20,7 @@ public:
     */
 
     /* This function creates a file in the filesystem */
-    // createFile(...)
+	bool createFile(char* fileName, char* content, int sizeInBytes);
 
     /* Creates a folder in the filesystem */
     void createFolder(char* folderName);

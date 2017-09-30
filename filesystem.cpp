@@ -15,6 +15,11 @@ FileSystem::~FileSystem()
 {
 	delete currentInode;
 }
+bool FileSystem::createFile(char * fileName, char* content, int sizeInBytes)
+{
+	
+	return false;
+}
 /* Creates a folder entry in the current INode, supports multiple slashes*/
 void FileSystem::createFolder(char * folderName)
 {
@@ -22,6 +27,7 @@ void FileSystem::createFolder(char * folderName)
 	std::string *folderNames = seperateSlashes(folderName, arraySize);
 	Inode* currentHolder = currentInode;
 	Inode** pointerHolder = new Inode*[arraySize];
+
 	while (arrayIndex != arraySize)
 	{	
 		if (isNameUnique(folderNames[arrayIndex].c_str()))
@@ -104,8 +110,21 @@ bool FileSystem::changeDir2(char * folderPath)
 	// Initialize variables
 	int nrOfInodeBlocks = currentInode->getNrOfBlocks();
 	int stringSize = 0, stringIndex = 0;
-	std::string* folder = seperateSlashes(folderPath, stringSize);
-	Inode* tempNode = new Inode(*currentInode);
+	std::string* folder = nullptr;
+	Inode* tempNode = nullptr;
+
+	//Relative or absolute path?
+	if (folderPath[0] == '/') // Absolute path
+	{
+		Block rootBlock = mMemblockDevice.readBlock(0);
+		tempNode = new Inode(rootBlock);
+		folder = seperateSlashes(++folderPath, stringSize);
+	}
+	else // Relative path
+	{
+		tempNode = new Inode(*currentInode);
+		folder = seperateSlashes(folderPath, stringSize);
+	}
 
 	//Locate folder in current Inode table
 	for (int i = 0; i < nrOfInodeBlocks && !(stringSize == stringIndex); i++)
@@ -153,6 +172,7 @@ bool FileSystem::changeDir2(char * folderPath)
 	if (readFullpath) changeCurrentInode(tempNode); // if fullpath was read then we reached the correct folder
 	else delete tempNode;
 	return readFullpath;
+
 }
 
 bool FileSystem::changeDir(char * folderPath)
