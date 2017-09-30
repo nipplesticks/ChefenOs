@@ -18,36 +18,45 @@ FileSystem::~FileSystem()
 /* Creates a folder entry in the current INode, supports multiple slashes*/
 void FileSystem::createFolder(char * folderName)
 {
-	int arraySize = 0;
-	int arrayIndex = 0;
+	int arraySize = 0, arrayIndex = 0;
 	std::string *folderNames = seperateSlashes(folderName, arraySize);
 	Inode* currentHolder = currentInode;
+	Inode** pointerHolder = new Inode*[arraySize];
 	while (arrayIndex != arraySize)
 	{	
 		if (isNameUnique(folderNames[arrayIndex].c_str()))
 		{
 			int hddWriteIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
 
-			char* fmita = stringToCharP(folderNames[arrayIndex]);
-			Inode* newInode = new Inode("/", fmita, hddWriteIndex, currentInode->getHDDLoc());
+			char* currentFolder = stringToCharP(folderNames[arrayIndex]);
+			Inode *newInode = new Inode("/", currentFolder, hddWriteIndex, currentInode->getHDDLoc());
 			int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 			for (int i = 0; i < newInode->getNrOfBlocks(); i++)
 				newInode->setBlock(freeBlocks[i]);
-			delete freeBlocks;
+			delete[] freeBlocks;
 
 			if (currentInode->lockFirstAvailableBlock())
 			{
-				mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentInode->toCharArray());
-				mMemblockDevice.writeBlock(newInode->getHDDLoc(), newInode->toCharArray());
+				char* currenINodeContent = currentInode->toCharArray();
+				char* newINodeContent = newInode->toCharArray();
+
+				mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currenINodeContent);
+				mMemblockDevice.writeBlock(newInode->getHDDLoc(), newINodeContent);
+
+				delete[] currenINodeContent;
+				delete[] newINodeContent;
 
 			}
-
+			pointerHolder[arrayIndex] = newInode;
 			currentInode = newInode;
 			arrayIndex++;
 		}
 
 	}
-
+	delete[] folderNames;
+	for (int i = 0; i < arraySize; i++)
+		delete pointerHolder[i];
+	delete[] pointerHolder;
 	currentInode = currentHolder;
 	
 }
@@ -73,7 +82,7 @@ std::string FileSystem::listDir() const
 			blockIndexes[i] = NOT_USED;
 		}
 	}
-
+	delete[] blockIndexes;
 	return lsStr;
 }
 /* Return current I-Node name+type*/
@@ -96,22 +105,25 @@ bool FileSystem::changeDir2(char * folderPath)
 	int nrOfInodeBlocks = currentInode->getNrOfBlocks();
 	int stringSize = 0, stringIndex = 0;
 	std::string* folder = seperateSlashes(folderPath, stringSize);
-	Inode* tempNode = currentInode;
+	Inode* tempNode = new Inode(*currentInode);
+
 	//Locate folder in current Inode table
 	for (int i = 0; i < nrOfInodeBlocks && !(stringSize == stringIndex); i++)
 	{
 		if (folder[stringIndex] == "..")
 		{
 			Block curBlock = mMemblockDevice.readBlock(tempNode->getParentHDDLoc());
-			tempNode = new Inode(curBlock);
+			Inode* tempNode2 = new Inode(curBlock);
 			
-			//Resets and check next path
+			delete tempNode;
+			tempNode = tempNode2;
+			
+			//Resets and check next folder
 			i = 0;
 			stringIndex++;
 
-			//changeCurrentInode(tempNode);
-
-		}else if (tempNode->isBlockUsed(i))
+		}
+		else if (tempNode->isBlockUsed(i))
 		{
 			Block curBlock = mMemblockDevice.readBlock(tempNode->getBlockIndex(i));
 			Inode* tempNode2 = new Inode(curBlock);
@@ -119,14 +131,13 @@ bool FileSystem::changeDir2(char * folderPath)
 			//Checking if the folder is in the currentInode table
 			if (!strcmp(tempNode2->getName(), folder[stringIndex].c_str()))
 			{
-				//Change workingDirectory
-				//changeCurrentInode(tempNode);
-
-				//Resets and check next path
+				//Resets and check next folder
 				i = 0;
 				stringIndex++;
-				tempNode = tempNode2;
 				
+				delete tempNode;
+				tempNode = nullptr;
+				tempNode = tempNode2;
 			}
 			else
 			{ 
@@ -137,8 +148,11 @@ bool FileSystem::changeDir2(char * folderPath)
 
 	}
 	delete[] folder;
-	if (stringIndex == stringSize) changeCurrentInode(tempNode);
-	return stringIndex == stringSize;
+	bool readFullpath = stringIndex == stringSize;
+	// Did we read the fullpath?
+	if (readFullpath) changeCurrentInode(tempNode); // if fullpath was read then we reached the correct folder
+	else delete tempNode;
+	return readFullpath;
 }
 
 bool FileSystem::changeDir(char * folderPath)
@@ -290,8 +304,8 @@ std::string * FileSystem::seperateSlashes(char * filepath, int & size) const
 
 char * FileSystem::stringToCharP(const std::string& string) const
 {
-	char* newChar = new char[string.length()];
-	strncpy_s(newChar, string.length() + 1, string.c_str(), string.length() + 1);
+	char* newChar = new char[string.length()+1];
+	strncpy_s(newChar, string.length()+1, string.c_str(), string.length()+1);
 	newChar[string.length()] = '\0';
 	return newChar;
 }
@@ -299,7 +313,8 @@ char * FileSystem::stringToCharP(const std::string& string) const
 void FileSystem::changeCurrentInode(Inode * newCur)
 {
 	delete currentInode;
-	currentInode = newCur;
+	currentInode = new Inode(*newCur);
+	delete newCur;
 
 	// Updates name
 	currentDirectory = currentInode->getName();

@@ -24,6 +24,7 @@ std::string help();
 
 int main(void) {
 
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	FileSystem fs;
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed

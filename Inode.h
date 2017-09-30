@@ -20,7 +20,8 @@ private:
 	bool usedBlocks[12];
 	int blockIndexes[12];
 
-	Inode& operator=(const Inode &other);
+	bool newUsed = false;
+
 public:
 	Inode(char * type, char * name, int hddLoc, int parentHDDLoc);
 	Inode(const Block & block);
@@ -47,6 +48,7 @@ public:
 	/* Retun free block within the Inode*/
 	int freeBlockInInode();
 	
+	Inode& operator=(const Inode &other);
 	bool lockFirstAvailableBlock();
 
 private:

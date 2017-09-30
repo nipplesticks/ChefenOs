@@ -3,14 +3,22 @@
 
 void MemBlockDevice::init()
 {
-	Inode root("/", "root", 0, 0);
+	char* lol = new char[5];
+	lol[0] = 'r';
+	lol[1] = 'o';
+	lol[2] = 'o';
+	lol[3] = 't';
+	lol[4] = '\0';
+	Inode root("/", lol, 0, 0);
 	// Gives the root folder 12 blocks
 	for (int i = 1; i < root.getNrOfBlocks() + 1; i++)
 	{
 		root.setBlock(i);
 	}
 	freePointer = root.getNrOfBlocks(); // Next free block
-	writeBlock(0, root.toCharArray());
+	char* content = root.toCharArray();
+	writeBlock(0, content);
+	delete[] content;
 }
 
 MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks) 

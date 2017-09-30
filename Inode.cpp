@@ -18,6 +18,7 @@ Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc)
 
 Inode::Inode(const Block & block)
 {
+	newUsed = true;
 	std::stringstream data;
 	std::string StringConverter;
 	data << block.toString();
@@ -135,15 +136,37 @@ int Inode::freeBlockInInode()
 
 void Inode::cleanup()
 {
-	//delete name;
-	//delete type;
-}
+	delete[] name;
+	name = nullptr;
+	if (newUsed)
+	{
+		delete[] type;
+		type = nullptr;
 
+	}
+}
+void hemmaFix(char *src, char*& dst)
+{
+	int charLength = 0;
+	while (src[charLength] != '\0')
+		charLength++;
+	dst = new char[charLength + 1];
+	int index = 0;
+	while (src[index] != '\0')
+	{
+		dst[index] = src[index];
+		index++;
+	}
+	dst[index] = '\0';
+}
 void Inode::copy(const Inode & other)
 {
 	// Yttlig kopiering
-	name = other.name;
-	type = other.type;
+	//name = other.name;
+	newUsed = true;
+	hemmaFix(other.name, name);
+	//strncpy_s(name, sizeof(name), other.name, sizeof(other.name));
+	hemmaFix(other.type, type);
 	hddLoc = other.hddLoc;
 	parentHDDLoc = other.parentHDDLoc;
 
