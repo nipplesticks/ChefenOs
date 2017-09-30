@@ -21,32 +21,46 @@ bool FileSystem::createFile(char * fileName, char* content, int sizeInBytes)
 	return false;
 }
 /* Creates a folder entry in the current INode, supports multiple slashes*/
-void FileSystem::createFolder(char * folderName)
+bool FileSystem::createFolder(char * folderName)
 {
 	int arraySize = 0, arrayIndex = 0;
-	std::string *folderNames = seperateSlashes(folderName, arraySize);
-	Inode* currentHolder = currentInode;
+	std::string *folderNames = nullptr;
+	Inode* currentHolder = nullptr;
+	bool done = false;
+
+	// Relative or absolute path?
+	if (folderName[0] == '/')
+	{
+		Block rootBlock = mMemblockDevice.readBlock(0);
+		currentHolder = new Inode(rootBlock);
+		folderNames = seperateSlashes(++folderName, arraySize);
+	}
+	else
+	{
+		currentHolder = new Inode(*currentInode);
+		folderNames = seperateSlashes(folderName, arraySize);
+	}
 	Inode** pointerHolder = new Inode*[arraySize];
 
 	while (arrayIndex != arraySize)
 	{	
-		if (isNameUnique(folderNames[arrayIndex].c_str()))
+		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))
 		{
-			int hddWriteIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode());
+			int hddWriteIndex = currentHolder->getBlockIndex(currentHolder->freeBlockInInode());
 
 			char* currentFolder = stringToCharP(folderNames[arrayIndex]);
-			Inode *newInode = new Inode("/", currentFolder, hddWriteIndex, currentInode->getHDDLoc());
+			Inode *newInode = new Inode("/", currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
 			int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 			for (int i = 0; i < newInode->getNrOfBlocks(); i++)
 				newInode->setBlock(freeBlocks[i]);
 			delete[] freeBlocks;
 
-			if (currentInode->lockFirstAvailableBlock())
+			if (currentHolder->lockFirstAvailableBlock())
 			{
-				char* currenINodeContent = currentInode->toCharArray();
+				char* currenINodeContent = currentHolder->toCharArray();
 				char* newINodeContent = newInode->toCharArray();
 
-				mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currenINodeContent);
+				mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currenINodeContent);
 				mMemblockDevice.writeBlock(newInode->getHDDLoc(), newINodeContent);
 
 				delete[] currenINodeContent;
@@ -54,16 +68,33 @@ void FileSystem::createFolder(char * folderName)
 
 			}
 			pointerHolder[arrayIndex] = newInode;
-			currentInode = newInode;
+			delete currentHolder;
+			currentHolder = newInode;
 			arrayIndex++;
+		}
+		else if (arrayIndex != arraySize)
+		{
+
+		}
+		else
+		{
+			done = true;
+			break;
 		}
 
 	}
 	delete[] folderNames;
-	for (int i = 0; i < arraySize; i++)
-		delete pointerHolder[i];
+	/*for (int i = 0; i < arraySize; i++)
+		delete pointerHolder[i];*/
 	delete[] pointerHolder;
-	currentInode = currentHolder;
+	delete currentHolder;
+	// Update currentInode 
+	Block currentBlock = mMemblockDevice.readBlock(currentInode->getHDDLoc());
+
+	delete currentInode;
+	currentInode = new Inode(currentBlock);
+	
+	return done ? false : true;
 	
 }
 /* Lists all available entires in current INode*/
@@ -127,7 +158,7 @@ bool FileSystem::changeDir2(char * folderPath)
 	}
 
 	//Locate folder in current Inode table
-	for (int i = 0; i < nrOfInodeBlocks && !(stringSize == stringIndex); i++)
+	for (int i = 0; i < nrOfInodeBlocks && (stringSize != stringIndex); i++)
 	{
 		if (folder[stringIndex] == "..")
 		{
@@ -190,15 +221,15 @@ bool FileSystem::changeDir(char * folderPath)
 }
 /* Compares all the names in the current Inode
 Return false if name found */
-bool FileSystem::isNameUnique(const char * name)
+bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
 {
 	//Read available blocks and store names
-	int numberOfBlocks = currentInode->getNrOfBlocks();
+	int numberOfBlocks = inode->getNrOfBlocks();
 	std::string* names = new std::string[numberOfBlocks];
 	for(int i = 0; i < numberOfBlocks; i++)
-		if (currentInode->isBlockUsed(i))
+		if (inode->isBlockUsed(i))
 		{
-			Block currentBlock = mMemblockDevice.readBlock(currentInode->getBlockIndex(i));
+			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));
 			Inode curInode(currentBlock);
 			names[i] = curInode.getName();
 			if (name == names[i])
@@ -298,26 +329,46 @@ Inode * FileSystem::walkDir(Inode* currentDirectory, char * next)
 
 std::string * FileSystem::seperateSlashes(char * filepath, int & size) const
 {
-	// Calculates the amount of char* in between the /:s
-	size = 1;
-	int index = 0;
+	size = 0; int index = 0;
+	bool wordFound = false;
 	while (filepath[index] != '\0')
 	{
-		if(filepath[index] == '/')
-			size++;
-		index++;
+		if (filepath[index++] != '/')
+		{
+			wordFound = true;;
+		}
+		else
+		{
+			if (wordFound)
+			{
+				size++;
+				wordFound = false;
+			}
+		}
 	}
-	//Place each directoy into seperate index
-	std::string* directories = new std::string[size];
-	int dirIndex = 0, charIndex = 0;
-	while (dirIndex < size)
-	{
-		char currentChar = filepath[charIndex++];
 
-		if (currentChar != '\0' && currentChar != '/') 
-			directories[dirIndex] += currentChar;
-		else // Reached a '/'
-			dirIndex++;
+	if (wordFound) size++;
+	
+	index = 0;
+	std::string *directories = new std::string[size];
+	int charIndex = 0, wordIndex = 0;
+	while(filepath[index] != '\0')
+	{
+		if (filepath[index] != '/')
+		{
+			directories[wordIndex] += filepath[index];
+			charIndex++;
+		}
+		else
+		{
+			if (charIndex > 0)
+			{
+				wordIndex++;
+			}
+		}
+		index++;
+
+	
 	}
 	return directories;
 }

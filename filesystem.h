@@ -23,7 +23,7 @@ public:
 	bool createFile(char* fileName, char* content, int sizeInBytes);
 
     /* Creates a folder in the filesystem */
-    void createFolder(char* folderName);
+	bool createFolder(char* folderName);
 
     /* Removes a file in the filesystem */
     // removeFile(...);
@@ -46,17 +46,17 @@ public:
 	bool changeDir2(char* folderPath);
 	bool changeDir(char * folderPath);
 
+	/* Splits a char* into strings based on '/' */
+	std::string* seperateSlashes(char* filepath, int& size) const;
+
 private:
 	// Help functions
 
 	/* Compares all the names in the current Inode
 	Return false if name found */
-	bool isNameUnique(const char* name);
+	bool isNameUnique(const char* name, const Inode* inode) const;
 
 	Inode* walkDir(Inode* currentDirectory, char * next);
-
-	/* Splits a char* into strings based on '/' */
-	std::string* seperateSlashes(char* filepath, int& size) const;
 
 	/* Convert string to char* */
 	char* stringToCharP(const std::string& string) const;

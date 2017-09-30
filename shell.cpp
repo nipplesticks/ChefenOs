@@ -72,7 +72,8 @@ int main(void) {
 				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (folderpath != nullptr)
 				{
-					fs.createFolder(folderpath);
+					if (!fs.createFolder(folderpath))
+						std::cout << "mkdir: cannot create directory '" << folderpath << "': File exists\n";
 					delete[] folderpath;
 				}
 				else
