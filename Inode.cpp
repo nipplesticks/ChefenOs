@@ -9,14 +9,11 @@ Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc)
 	this->blockIndexes[0] = this->parentHDDLoc;
 	this->usedBlocks[0] = true;
 
-	for (int i = 1; i < nrOfBlocks ; i++)
+	for (int i = 1; i < nrOfBlocks  ; i++)
 	{
 		blockIndexes[i] = NOT_USED;
 		usedBlocks[i] = false;
 	}
-
-
-
 }
 
 Inode::Inode(const Block & block)
@@ -189,19 +186,6 @@ bool Inode::copyIntln(char buffert[], int & buffertIndex, int value) const
 	buffert[buffertIndex++] = '\n';
 
 	return buffertIndex < 511;
-	/*
-	char integerBuffer[65];
-
-	_itoa_s(value, integerBuffer, 65, 10);
-
-	int index = 0;
-	while (integerBuffer[index] != '\0')
-		buffert[buffertIndex++] = integerBuffer[index++];
-
-	buffert[buffertIndex++] = '\r';
-	buffert[buffertIndex++] = '\n';
-	return buffertIndex < 511;
-	*/
 }
 
 Inode & Inode::operator=(const Inode & other)

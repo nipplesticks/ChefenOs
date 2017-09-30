@@ -57,6 +57,13 @@ private:
 
 	/* Splits a char* into strings based on '/' */
 	std::string* seperateSlashes(char* filepath, int& size) const;
+
+	/* Convert string to char* */
+	char* stringToCharP(const std::string& string) const;
+
+	/* Change current Inode */
+	void changeCurrentInode(Inode* newCur);
+
 };
 
 #endif // FILESYSTEM_H
