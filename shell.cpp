@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <sstream>
 #include<string>
@@ -85,7 +86,7 @@ int main(void) {
 				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (folderpath != nullptr)
 				{
-					if (!fs.changeDir2(folderpath))
+					if (!fs.changeDir3(folderpath))
 						std::cout << "bash: cd: " << folderpath << ": No such file or directory\n";
 					delete[] folderpath;
 					currentDir = fs.currentDir();
@@ -105,7 +106,6 @@ int main(void) {
             }
         }
     } while (bRun == true);
-
     return 0;
 }
 

@@ -162,7 +162,6 @@ void hemmaFix(char *src, char*& dst)
 void Inode::copy(const Inode & other)
 {
 	// Yttlig kopiering
-	//name = other.name;
 	newUsed = true;
 	hemmaFix(other.name, name);
 	//strncpy_s(name, sizeof(name), other.name, sizeof(other.name));

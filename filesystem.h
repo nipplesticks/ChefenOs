@@ -43,9 +43,8 @@ public:
 
 	void setCurrentDirStr(const std::string& str, bool remove);
 
-	bool changeDir2(char* folderPath);
 	bool changeDir(char * folderPath);
-
+	bool changeDir3(char* folderPath);
 	/* Splits a char* into strings based on '/' */
 	std::string* seperateSlashes(char* filepath, int& size) const;
 
@@ -64,6 +63,7 @@ private:
 	/* Change current Inode */
 	void changeCurrentInode(Inode* newCur);
 
+	Inode* changeDir2(char* folderPath);
 };
 
 #endif // FILESYSTEM_H
