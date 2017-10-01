@@ -2,18 +2,19 @@
 
 FileSystem::FileSystem()
 {
-	// Initilize root directory
-	currentInode = new Inode(mMemblockDevice.readBlock(0));
-
-	std::string path = currentInode->getName();
-	path += currentInode->getType();
-
-	currentDirectory = path;
+	init();
 }
 
 FileSystem::~FileSystem()
 {
 	delete currentInode;
+}
+void FileSystem::formatHDD()
+{
+	delete currentInode;
+	mMemblockDevice.reset();
+	init();
+
 }
 bool FileSystem::createFile(char * fileName, char* content, int sizeInBytes)
 {
@@ -244,6 +245,17 @@ std::string FileSystem::dirNameJumper(int index)
 	if (index == 0) return "root/";
 	else
 		return dirNameJumper(name.getParentHDDLoc()) + name.getName();
+}
+
+void FileSystem::init()
+{
+	// Initilize root directory
+	currentInode = new Inode(mMemblockDevice.readBlock(0));
+
+	std::string path = currentInode->getName();
+	path += currentInode->getType();
+
+	currentDirectory = path;
 }
 
 bool FileSystem::changeDir(char * folderPath)

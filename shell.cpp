@@ -5,11 +5,11 @@
 #include "filesystem.h"
 
 const int MAXCOMMANDS = 8;
-const int NUMAVAILABLECOMMANDS = 15;
+const int NUMAVAILABLECOMMANDS = 16;
 
 std::string availableCommands[NUMAVAILABLECOMMANDS] = {
     "quit","format","ls","create","cat","createImage","restoreImage",
-    "rm","cp","append","mv","mkdir","cd","pwd","help"
+    "rm","cp","append","mv","mkdir","cd","pwd","help","clear"
 };
 
 /* Takes usercommand from input and returns number of commands, commands are stored in strArr[] */
@@ -48,6 +48,7 @@ int main(void) {
 				bRun = quit();                
                 break;
             case 1: // format E
+				fs.formatHDD();
                 break;
             case 2: // ls E
 				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
@@ -108,6 +109,9 @@ int main(void) {
             case 14: // help
                 std::cout << help() << std::endl;
                 break;
+			case 15: // clear
+				if(system("clear")) system("cls"); // Funkar både på windows och linux
+				break;
             default:
                 std::cout << "Unknown command: " << commandArr[0] << std::endl;
             }
@@ -175,6 +179,7 @@ std::string help() {
     helpStr += "* mkdir  <directory>:               Creates a new directory called <directory>\n";
     helpStr += "* cd     <directory>:               Changes current working directory to <directory>\n";
     helpStr += "* pwd:                              Get current working directory\n";
+	helpStr += "* clear:                            Clears the terminal window\n";
     helpStr += "* help:                             Prints this help screen\n";
     return helpStr;
 }

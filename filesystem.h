@@ -18,7 +18,7 @@ public:
     /* These API functions need to be implemented
 	   You are free to specify parameter lists and return values
     */
-
+	void formatHDD();
     /* This function creates a file in the filesystem */
 	bool createFile(char* fileName, char* content, int sizeInBytes);
 
@@ -68,6 +68,8 @@ private:
 	Inode* changeDir2(char* folderPath);
 
 	std::string dirNameJumper(int index);
+
+	void init();
 };
 
 #endif // FILESYSTEM_H
