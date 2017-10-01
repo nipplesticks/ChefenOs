@@ -35,7 +35,7 @@ public:
     // goToFolder(...);
 
     /* This function will get all the files and folders in the specified folder */
-	std::string listDir() const;
+	bool listCopy(char* filepath, std::string& holder);
 	/* This function will return the path to current working directory */
 	std::string pwd();
 

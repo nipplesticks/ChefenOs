@@ -110,21 +110,34 @@ bool FileSystem::createFolder(char * folderName)
 	
 }
 /* Lists all available entires in current INode*/
-std::string FileSystem::listDir() const
+bool FileSystem::listCopy(char* filepath, std::string& holder)
 {
+	Inode* tempNode = nullptr;
+
+	if (filepath)
+	{
+		tempNode = changeDir2(filepath);
+		if (!tempNode)
+		{
+			delete tempNode;
+			return false;
+		}
+	}
+	else
+		tempNode = new Inode(*currentInode);
+
 	int nrOfBlocks = currentInode->getNrOfBlocks();
 	int * blockIndexes = new int[nrOfBlocks];
-	std::string lsStr = "";
 
 	for (int i = 1; i < nrOfBlocks; i++)
 	{
-		blockIndexes[i] = currentInode->getBlockIndex(i);
-		if (currentInode->isBlockUsed(i))
+		blockIndexes[i] = tempNode->getBlockIndex(i);
+		if (tempNode->isBlockUsed(i))
 		{
 			Inode printer(mMemblockDevice.readBlock(blockIndexes[i]));
-			lsStr += printer.getName();
-			lsStr += printer.getType();
-			lsStr += "\n";
+			holder += printer.getName();
+			holder += printer.getType();
+			holder += "\n";
 		}
 		else
 		{
@@ -132,7 +145,8 @@ std::string FileSystem::listDir() const
 		}
 	}
 	delete[] blockIndexes;
-	return lsStr;
+	delete tempNode;
+	return true;
 }
 std::string FileSystem::pwd()
 {
@@ -229,7 +243,7 @@ std::string FileSystem::dirNameJumper(int index)
 	Inode name(currentBlock);
 	if (index == 0) return "root/";
 	else
-		return dirNameJumper(name.getParentHDDLoc()) + name.getName() + "/";
+		return dirNameJumper(name.getParentHDDLoc()) + name.getName();
 }
 
 bool FileSystem::changeDir(char * folderPath)

@@ -33,7 +33,7 @@ int main(void) {
     bool bRun = true;
 
 	char * folderpath = nullptr;
-
+	std::string content;
     do {
         std::cout << user << ":" << currentDir << "$ ";
 		getline(std::cin, userCommand);
@@ -50,7 +50,13 @@ int main(void) {
             case 1: // format E
                 break;
             case 2: // ls E
-				std::cout << fs.listDir() << std::endl;
+				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (fs.listCopy(folderpath, content))
+					std::cout << content << std::endl;
+				else
+					std::cout << "ls: cannot access '" << folderpath << "': No such file or directory\n";
+				content = "";
+				delete[] folderpath;
                 break;
             case 3: // create E
 
