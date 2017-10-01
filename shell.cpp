@@ -97,6 +97,7 @@ int main(void) {
 				}
                 break; 
             case 13: // pwd E
+				std::cout << fs.pwd() << std::endl;
                 break;
             case 14: // help
                 std::cout << help() << std::endl;

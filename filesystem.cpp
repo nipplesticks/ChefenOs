@@ -47,14 +47,15 @@ bool FileSystem::createFolder(char * folderName)
 
 	while (arrayIndex != arraySize)
 	{	
-		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))
+		// Does there exist a folder with this name in the current directory?
+		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))	
 		{
 			int hddWriteIndex = currentHolder->getBlockIndex(currentHolder->freeBlockInInode());
 
 			char* currentFolder = stringToCharP(folderNames[arrayIndex]);
 			Inode *newInode = new Inode("/", currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
 			int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-			for (int i = 0; i < newInode->getNrOfBlocks(); i++)
+			for (int i = 1; i < newInode->getNrOfBlocks(); i++)
 				newInode->setBlock(freeBlocks[i]);
 			delete[] freeBlocks;
 
@@ -74,8 +75,9 @@ bool FileSystem::createFolder(char * folderName)
 			delete currentHolder;
 			currentHolder = newInode;
 			arrayIndex++;
-		}
-		else if (arrayIndex != arraySize - 1)
+		}/* If it is not the destination folder yet, we will instead traversel into the folder and continue.
+			This enables the option to create a folder when you are not inside it */
+		else if (arrayIndex != arraySize - 1)	
 		{
 			char* fName = stringToCharP(folderNames[arrayIndex].c_str());
 			Inode* tempCurrent = currentInode;
@@ -88,7 +90,7 @@ bool FileSystem::createFolder(char * folderName)
 			currentInode = tempCurrent;
 			tempCurrent = nullptr;
 			arrayIndex++;
-		}
+		} //If the name is not unique, and we are at the final destination we are done
 		else
 		{
 			done = true;
@@ -132,6 +134,10 @@ std::string FileSystem::listDir() const
 	delete[] blockIndexes;
 	return lsStr;
 }
+std::string FileSystem::pwd()
+{
+	return dirNameJumper(currentInode->getHDDLoc());
+}
 /* Return current I-Node name+type*/
 std::string FileSystem::currentDir() const
 {
@@ -168,7 +174,7 @@ Inode* FileSystem::changeDir2(char * folderPath)
 	}
 
 	//Locate folder in current Inode table
-	for (int i = 0; i < nrOfInodeBlocks && (stringSize != stringIndex); i++)
+	for (int i = 1; i < nrOfInodeBlocks && (stringSize != stringIndex); i++)
 	{
 		if (folder[stringIndex] == "..")
 		{
@@ -217,6 +223,15 @@ Inode* FileSystem::changeDir2(char * folderPath)
 
 }
 
+std::string FileSystem::dirNameJumper(int index)
+{
+	Block currentBlock = mMemblockDevice.readBlock(index);
+	Inode name(currentBlock);
+	if (index == 0) return "root/";
+	else
+		return dirNameJumper(name.getParentHDDLoc()) + name.getName() + "/";
+}
+
 bool FileSystem::changeDir(char * folderPath)
 {
 	Inode * walker = new Inode(*currentInode);
@@ -245,7 +260,7 @@ bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
 	//Read available blocks and store names
 	int numberOfBlocks = inode->getNrOfBlocks();
 	std::string* names = new std::string[numberOfBlocks];
-	for(int i = 0; i < numberOfBlocks; i++)
+	for(int i = 1; i < numberOfBlocks; i++)
 		if (inode->isBlockUsed(i))
 		{
 			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));

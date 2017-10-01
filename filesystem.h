@@ -36,6 +36,8 @@ public:
 
     /* This function will get all the files and folders in the specified folder */
 	std::string listDir() const;
+	/* This function will return the path to current working directory */
+	std::string pwd();
 
     /* Add your own member-functions if needed */
 	/* Return current INode name+type*/
@@ -64,6 +66,8 @@ private:
 	void changeCurrentInode(Inode* newCur);
 
 	Inode* changeDir2(char* folderPath);
+
+	std::string dirNameJumper(int index);
 };
 
 #endif // FILESYSTEM_H
