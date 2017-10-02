@@ -21,6 +21,7 @@ bool FileSystem::createFile(char * fileName, char* content, int sizeInBytes)
 	
 	return false;
 }
+#include <iostream>
 /* Creates a folder entry in the current INode
 - Supports multiple slashes
 - Supports relative or absoulte path
@@ -52,52 +53,56 @@ bool FileSystem::createFolder(char * folderName)
 		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))	
 		{
 			int hddWriteIndex = currentHolder->getBlockIndex(currentHolder->freeBlockInInode());
-
-			char* currentFolder = stringToCharP(folderNames[arrayIndex]);
-			Inode *newInode = new Inode("/", currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
-			int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-			for (int i = 1; i < newInode->getNrOfBlocks(); i++)
-				newInode->setBlock(freeBlocks[i]);
-			delete[] freeBlocks;
-
-			if (currentHolder->lockFirstAvailableBlock())
+			if(hddWriteIndex != -1)
 			{
-				char* currenINodeContent = currentHolder->toCharArray();
-				char* newINodeContent = newInode->toCharArray();
+		 
+				char* currentFolder = stringToCharP(folderNames[arrayIndex]);
+				char* currentType = stringToCharP(std::string("/"));
+				Inode *newInode = new Inode(currentType, currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
+				int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
+				for (int i = 1; i < newInode->getNrOfBlocks(); i++)
+					newInode->setBlock(freeBlocks[i]);
+				delete[] freeBlocks;
 
-				mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currenINodeContent);
-				mMemblockDevice.writeBlock(newInode->getHDDLoc(), newINodeContent);
+				if (currentHolder->lockFirstAvailableBlock())
+				{
+					char* currenINodeContent = currentHolder->toCharArray();
+					char* newINodeContent = newInode->toCharArray();
+					std::cout << currenINodeContent;
+//					std::cout << newInode->getHDDLoc();
+					mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currenINodeContent);
+					mMemblockDevice.writeBlock(newInode->getHDDLoc(), newINodeContent);
 
-				delete[] currenINodeContent;
-				delete[] newINodeContent;
+					delete[] currenINodeContent;
+					delete[] newINodeContent;
 
+				}
+				std::cout << lol();
+				delete currentHolder;
+				currentHolder = newInode;
+				arrayIndex++;
+			}/* If it is not the destination folder yet, we will instead traversel into the folder and continue.
+				This enables the option to create a folder when you are not inside it */
+			else if (arrayIndex != arraySize - 1)	
+			{
+				char* fName = stringToCharP(folderNames[arrayIndex].c_str());
+				Inode* tempCurrent = currentInode;
+				currentInode = currentHolder;
+				Inode* returnInode = changeDir2(fName);
+				delete currentHolder;
+				currentHolder = new Inode(*returnInode);
+				delete returnInode;
+				delete[] fName; 
+				currentInode = tempCurrent;
+				tempCurrent = nullptr;
+				arrayIndex++;
+			} //If the name is not unique, and we are at the final destination we are done
+			else
+			{
+				done = true;
+				break;
 			}
-
-			delete currentHolder;
-			currentHolder = newInode;
-			arrayIndex++;
-		}/* If it is not the destination folder yet, we will instead traversel into the folder and continue.
-			This enables the option to create a folder when you are not inside it */
-		else if (arrayIndex != arraySize - 1)	
-		{
-			char* fName = stringToCharP(folderNames[arrayIndex].c_str());
-			Inode* tempCurrent = currentInode;
-			currentInode = currentHolder;
-			Inode* returnInode = changeDir2(fName);
-			delete currentHolder;
-			currentHolder = new Inode(*returnInode);
-			delete returnInode;
-			delete[] fName; 
-			currentInode = tempCurrent;
-			tempCurrent = nullptr;
-			arrayIndex++;
-		} //If the name is not unique, and we are at the final destination we are done
-		else
-		{
-			done = true;
-			break;
-		}
-
+			}
 	}
 	delete[] folderNames;
 	delete currentHolder;
@@ -122,7 +127,6 @@ void FileSystem::createImage(char * folderPath)
 	}
 	
 }
-#include <iostream>
 bool FileSystem::readImage(char * folderPath)
 {
 	auto file = std::fstream(folderPath, std::ios::in | std::ios::binary);
@@ -297,9 +301,9 @@ std::string FileSystem::dirNameJumper(int index)
 {
 	Block currentBlock = mMemblockDevice.readBlock(index);
 	Inode name(currentBlock);
-	if (index == 0) return "root/";
+	if (index == 0) return "/root";
 	else
-		return dirNameJumper(name.getParentHDDLoc()) + name.getName();
+		return dirNameJumper(name.getParentHDDLoc()) + name.getType() + name.getName();
 }
 
 void FileSystem::init()
@@ -494,7 +498,7 @@ std::string * FileSystem::seperateSlashes(char * filepath, int & size) const
 char * FileSystem::stringToCharP(const std::string& string) const
 {
 	char* newChar = new char[string.length()+1];
-	strncpy_s(newChar, string.length()+1, string.c_str(), string.length()+1);
+	std::copy(string.begin(), string.end(), newChar);
 	newChar[string.length()] = '\0';
 	return newChar;
 }

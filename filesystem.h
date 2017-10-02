@@ -3,7 +3,7 @@
 #include "memblockdevice.h"
 #include "Inode.h"
 #include <fstream>
-
+#include <string.h>
 
 class FileSystem
 {
@@ -15,6 +15,7 @@ private:
 public:
     FileSystem();
     ~FileSystem();
+	//DEBUG METHOD
 	std::string lol();
     /* These API functions need to be implemented
 	   You are free to specify parameter lists and return values
@@ -50,9 +51,7 @@ public:
 
 	bool changeDir(char * folderPath);
 	bool changeDir3(char* folderPath);
-	/* Splits a char* into strings based on '/' */
-	std::string* seperateSlashes(char* filepath, int& size) const;
-
+	
 private:
 	// Help functions
 
@@ -72,7 +71,9 @@ private:
 
 	std::string dirNameJumper(int index);
 
+	/* Splits a char* into strings based on '/' */
+	std::string* seperateSlashes(char* filepath, int& size) const;
+
 	void init();
 };
-
 #endif // FILESYSTEM_H
