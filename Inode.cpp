@@ -86,7 +86,11 @@ bool Inode::lockFirstAvailableBlock()
 /*Converts all variables into a char array*/
 char * Inode::toCharArray() const
 {
-	char *buffert = new char[512];
+	char *buffert = new char[513];
+	
+	buffert[512] = '\0';
+	int index = 0;
+	while (buffert[index] != '\0') buffert[index++] = '0';
 	int buffertIndex = 0;
 
 
@@ -108,16 +112,6 @@ char * Inode::toCharArray() const
 
 		}
 	}
-
-	if (buffertIndex < 511)
-	{
-		buffert[buffertIndex++] = '\0';
-	}
-	else
-	{
-		return nullptr;
-	}
-
 	return buffert;
 }
 int Inode::freeBlockInInode()
@@ -145,7 +139,7 @@ void Inode::cleanup()
 
 	}
 }
-void hemmaFix(char *src, char*& dst)
+void Inode::charDeepCopy(char *src, char*& dst) const
 {
 	int charLength = 0;
 	while (src[charLength] != '\0')
@@ -163,9 +157,9 @@ void Inode::copy(const Inode & other)
 {
 	// Yttlig kopiering
 	newUsed = true;
-	hemmaFix(other.name, name);
-	//strncpy_s(name, sizeof(name), other.name, sizeof(other.name));
-	hemmaFix(other.type, type);
+	charDeepCopy(other.name, name);
+	
+	charDeepCopy(other.type, type);
 	hddLoc = other.hddLoc;
 	parentHDDLoc = other.parentHDDLoc;
 

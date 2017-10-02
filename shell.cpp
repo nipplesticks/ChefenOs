@@ -60,13 +60,34 @@ int main(void) {
 				delete[] folderpath;
                 break;
             case 3: // create E
-
+				
+				//std::cout << fs.lol();
                 break;
             case 4: // cat E
                 break;
             case 5: // createImage E
+				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (folderpath)
+				{
+					fs.createImage(folderpath);
+					delete[] folderpath;
+				}
+				else
+				{
+					std::cout << "createImage <folderpath>\n";
+				}
                 break;
             case 6: // restoreImage E
+				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (folderpath)
+				{
+					fs.readImage(folderpath);
+					delete[] folderpath;
+				}
+				else
+				{
+					std::cout << "restoreImage <folderpath>\n";
+				}
                 break;
             case 7: // rm E
                 break;

@@ -3,6 +3,7 @@
 
 void MemBlockDevice::init()
 {
+	reset();
 	char* lol = new char[5];
 	lol[0] = 'r';
 	lol[1] = 'o';
@@ -30,6 +31,7 @@ MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks)
 MemBlockDevice::MemBlockDevice(const MemBlockDevice &other) : BlockDevice(other) {
 
 }
+
 
 MemBlockDevice::~MemBlockDevice() {
     /* Implicit call to base-class destructor */
@@ -107,6 +109,22 @@ void MemBlockDevice::reset() {
     for (int i = 0; i < this->nrOfBlocks; ++i) {
         this->memBlocks[i].reset('0');
     }
+	char* lol = new char[5];
+	lol[0] = 'r';
+	lol[1] = 'o';
+	lol[2] = 'o';
+	lol[3] = 't';
+	lol[4] = '\0';
+	Inode root("/", lol, 0, 0);
+	// Gives the root folder 12 blocks
+	for (int i = 1; i < root.getNrOfBlocks() + 1; i++)
+	{
+		root.setBlock(i);
+	}
+	freePointer = root.getNrOfBlocks(); // Next free block
+	char* content = root.toCharArray();
+	writeBlock(0, content);
+	delete[] content;
 }
 
 int MemBlockDevice::size() const {
@@ -122,4 +140,17 @@ int * MemBlockDevice::getFreeBlockAdresses()
 		blocks[i] = freePointer++;
 	}
 	return blocks;
+}
+
+std::string MemBlockDevice::toFile() const
+{
+	std::string content;
+	content += std::to_string(freePointer) + "\r\n";
+	content += std::to_string(nrOfBlocks) + "\r\n";
+	for (int i = 0; i < nrOfBlocks; i++)
+	{
+	for (int curblock = 0; curblock < 512; curblock++)
+	content += memBlocks[i][curblock];
+	}
+	return content;
 }

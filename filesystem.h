@@ -2,6 +2,7 @@
 #define FILESYSTEM_H
 #include "memblockdevice.h"
 #include "Inode.h"
+#include <fstream>
 
 
 class FileSystem
@@ -14,7 +15,7 @@ private:
 public:
     FileSystem();
     ~FileSystem();
-
+	std::string lol();
     /* These API functions need to be implemented
 	   You are free to specify parameter lists and return values
     */
@@ -31,6 +32,8 @@ public:
     /* Removes a folder in the filesystem */
     bool removeFolder();
 
+	void createImage(char* folderPath);
+	bool readImage(char* folderPath);
     /* Function will move the current location to a specified location in the filesystem */
     // goToFolder(...);
 

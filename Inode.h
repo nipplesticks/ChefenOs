@@ -56,6 +56,7 @@ private:
 	void copy(const Inode &other);
 	bool copyCharArrln(char buffert[], int &buffertIndex, const char * arr) const ;
 	bool copyIntln(char buffert[], int &buffertIndex, int value) const;
+	void charDeepCopy(char *src, char*& dst) const;
 
 
 };

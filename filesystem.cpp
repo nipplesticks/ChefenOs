@@ -110,6 +110,61 @@ bool FileSystem::createFolder(char * folderName)
 	return !done;
 	
 }
+
+void FileSystem::createImage(char * folderPath)
+{
+	auto file = std::fstream(folderPath, std::ios::out | std::ios::binary);
+	if (file.good())
+	{
+		std::string content = mMemblockDevice.toFile();
+		file.write(content.c_str(), content.size());
+		file.close();
+	}
+	
+}
+#include <iostream>
+bool FileSystem::readImage(char * folderPath)
+{
+	auto file = std::fstream(folderPath, std::ios::in | std::ios::binary);
+	if (file.good())
+	{
+		file.seekg(0, std::ios::end);
+		size_t size = file.tellg();
+
+		file.seekg(0, std::ios_base::beg);
+
+		char* buffer = new char[size+1];
+		buffer[size] = '\0';
+		file.read(buffer, size);
+		
+		file.close();
+		int bufferIndex = 0;
+		std::string container;
+		while (buffer[bufferIndex] != '\r')
+		{
+			container += buffer[bufferIndex++];
+		}
+		int freePointer = std::stoi(container);
+		container = "";
+		bufferIndex+=2;
+		while (buffer[bufferIndex] != '\r')
+		{
+			container += buffer[bufferIndex++];
+		}
+		bufferIndex += 2;
+		int nrOfBlocks = std::stoi(container);
+		mMemblockDevice.reset();
+
+		
+		return true;
+	}
+	return false;
+}
+
+std::string FileSystem::lol()
+{
+	return mMemblockDevice.toFile();
+}
 /* Lists all available entires in current INode*/
 bool FileSystem::listCopy(char* filepath, std::string& holder)
 {

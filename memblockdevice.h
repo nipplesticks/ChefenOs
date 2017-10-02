@@ -36,6 +36,10 @@ public:
     int size() const;
 	/* Return freeblockadresses*/
 	int* getFreeBlockAdresses();
+	
+	void setFreePointer(int freePointer);
+
+	std::string toFile() const;
 };
 
 #endif // MEMBLOCKDEVICE_H
