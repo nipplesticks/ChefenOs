@@ -42,7 +42,7 @@ public:
 	int getBlockIndex(int index) const;
 
 	bool setBlock(int adress);
-
+	/* REMEBER TO REMOVE */
 	char* toCharArray() const;
 	
 	/* Retun free block within the Inode*/
@@ -50,6 +50,8 @@ public:
 	
 	Inode& operator=(const Inode &other);
 	bool lockFirstAvailableBlock();
+
+	bool removeNodeAt(int index);
 
 private:
 	void cleanup();

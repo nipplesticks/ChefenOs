@@ -85,15 +85,29 @@ bool Inode::lockFirstAvailableBlock()
 	return index != -1;
 }
 
+bool Inode::removeNodeAt(int index)
+{
+	bool removed = false;
+	if (index > 1 && index < nrOfBlocks)
+	{
+		removed = usedBlocks[index];
+		usedBlocks[index] = false;
+	}
+	
+
+	return removed;
+}
+
+
 #include <iostream>
 /*Converts all variables into a char array*/
 char * Inode::toCharArray() const
 {
-	char *buffert = new char[513];
+	char *buffert = new char[512];
 	
-	buffert[512] = '\0';
+	buffert[511] = '\0';
 	int index = 0;
-	while (buffert[index] != '\0') buffert[index++] = 'a';
+	while (buffert[index] != '\0') buffert[index++] = '0';
 	int buffertIndex = 0;
 
 
@@ -115,8 +129,7 @@ char * Inode::toCharArray() const
 
 		}
 	}
-//	for(int i = 0; i < 100; i++)
-//		std::cout << "i = " << i << "buffer is: " << buffert[i] << "\n";	
+
 	return buffert;
 }
 int Inode::freeBlockInInode()

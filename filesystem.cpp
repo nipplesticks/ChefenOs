@@ -1,5 +1,11 @@
 #include "filesystem.h"
-
+#define _CRTDBG_MAP_ALLOC
+#include<iostream>
+#include <crtdbg.h>
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
 FileSystem::FileSystem()
 {
 	init();
@@ -50,12 +56,12 @@ bool FileSystem::createFolder(char * folderName)
 	while (arrayIndex != arraySize)
 	{	
 		// Does there exist a folder with this name in the current directory?
-		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))	
+		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))
 		{
 			int hddWriteIndex = currentHolder->getBlockIndex(currentHolder->freeBlockInInode());
-			if(hddWriteIndex != -1)
+			if (hddWriteIndex != -1)
 			{
-		 
+
 				char* currentFolder = stringToCharP(folderNames[arrayIndex]);
 				char* currentType = stringToCharP(std::string("/"));
 				Inode *newInode = new Inode(currentType, currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
@@ -82,6 +88,7 @@ bool FileSystem::createFolder(char * folderName)
 				arrayIndex++;
 			}/* If it is not the destination folder yet, we will instead traversel into the folder and continue.
 				This enables the option to create a folder when you are not inside it */
+		}
 			else if (arrayIndex != arraySize - 1)	
 			{
 				char* fName = stringToCharP(folderNames[arrayIndex].c_str());
@@ -101,16 +108,13 @@ bool FileSystem::createFolder(char * folderName)
 				done = true;
 				break;
 			}
-			}
+			
 	}
 	delete[] folderNames;
 	delete currentHolder;
 	currentHolder = nullptr;
 	// Update currentInode 
-	Block currentBlock = mMemblockDevice.readBlock(currentInode->getHDDLoc());
-
-	delete currentInode;
-	currentInode = new Inode(currentBlock);
+	refreshCurrentInode();
 	return !done;
 	
 }
@@ -295,7 +299,6 @@ Inode* FileSystem::walkDir(char * folderPath)
 
 	delete tempNode;
 	return nullptr;
-
 }
 
 std::string FileSystem::dirNameJumper(int index)
@@ -326,6 +329,33 @@ bool FileSystem::changeDir(char * folderPath)
 	else return false;
 	return true;
 }
+
+bool FileSystem::removeFolder(char * path)
+{
+	bool removed = false;
+	Inode *removalNode = nullptr;
+	removalNode = walkDir(path);
+	if (removalNode != nullptr)
+	{
+		Block parentBlock = mMemblockDevice.readBlock(removalNode->getParentHDDLoc());
+		Inode * parentNode = new Inode(parentBlock);
+
+		removed = parentNode->removeNodeAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
+		char* parentNodeContent = parentNode->toCharArray();
+		mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeContent);
+		delete[] parentNodeContent;
+
+		refreshCurrentInode();
+
+		delete removalNode;
+		delete parentNode;
+
+
+
+	}
+	
+	return removed;
+}
 /* Compares all the names in the current Inode
 Return false if name found */
 bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
@@ -334,7 +364,7 @@ bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
 	int numberOfBlocks = inode->getNrOfBlocks();
 	std::string* names = new std::string[numberOfBlocks];
 
-	for(int i = 1; i < numberOfBlocks; i++)
+	for(int i = 2; i < numberOfBlocks; i++)
 		if (inode->isBlockUsed(i))
 		{
 			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));
@@ -395,6 +425,39 @@ std::string * FileSystem::seperateSlashes(char * filepath, int & size) const
 	
 	}
 	return directories;
+}
+
+int FileSystem::getIndexOfNodeWithName(const char * name, const Inode * inode) const
+{
+	//Read available blocks and store names
+	int returnIndex = -1;
+	int numberOfBlocks = inode->getNrOfBlocks();
+	std::string* names = new std::string[numberOfBlocks];
+	for (int i = 2; i < numberOfBlocks && returnIndex == -1; i++)
+		if (inode->isBlockUsed(i))
+		{
+			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));
+			Inode curInode(currentBlock);
+			names[i] = curInode.getName();
+			if (name == names[i])
+			{
+				delete[] names;
+				names = nullptr;
+				returnIndex = i;
+			}
+
+		}
+	if (names != nullptr) delete[] names;
+	return returnIndex;
+}
+
+void FileSystem::refreshCurrentInode()
+{
+	// Update currentInode 
+	Block currentBlock = mMemblockDevice.readBlock(currentInode->getHDDLoc());
+
+	delete currentInode;
+	currentInode = new Inode(currentBlock);
 }
 
 char * FileSystem::stringToCharP(const std::string& string) const

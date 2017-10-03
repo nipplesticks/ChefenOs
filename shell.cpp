@@ -24,8 +24,8 @@ std::string help();
 /* More functions ... */
 
 int main(void) {
-
-//	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	char* tjena = new char[10];
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	FileSystem fs;
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed
@@ -89,6 +89,19 @@ int main(void) {
 				}
                 break;
             case 7: // rm E
+				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (folderpath)
+				{
+					if (!fs.removeFolder(folderpath))
+					{
+						std::cout << "rm: cannot access '" << folderpath << "': No such file or directory\n";
+					}
+					delete[] folderpath;
+				}
+				else
+				{
+					std::cout << "rm <path>\n";
+				}
                 break;
             case 8: // cp E
                 break;
@@ -137,6 +150,7 @@ int main(void) {
             }
         }
     } while (bRun == true);
+
     return 0;
 }
 
