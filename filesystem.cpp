@@ -68,7 +68,7 @@ bool FileSystem::createFolder(char * folderName)
 				{
 					char* currenINodeContent = currentHolder->toCharArray();
 					char* newINodeContent = newInode->toCharArray();
-					std::cout << currenINodeContent;
+//					std::cout << currenINodeContent;
 //					std::cout << newInode->getHDDLoc();
 					mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currenINodeContent);
 					mMemblockDevice.writeBlock(newInode->getHDDLoc(), newINodeContent);
@@ -77,7 +77,7 @@ bool FileSystem::createFolder(char * folderName)
 					delete[] newINodeContent;
 
 				}
-				std::cout << lol();
+			//	std::cout << lol();
 				delete currentHolder;
 				currentHolder = newInode;
 				arrayIndex++;
@@ -189,7 +189,7 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 	int nrOfBlocks = currentInode->getNrOfBlocks();
 	int * blockIndexes = new int[nrOfBlocks];
 
-	for (int i = 1; i < nrOfBlocks; i++)
+	for (int i = 2; i < nrOfBlocks; i++)
 	{
 		blockIndexes[i] = tempNode->getBlockIndex(i);
 		if (tempNode->isBlockUsed(i))
@@ -303,9 +303,9 @@ std::string FileSystem::dirNameJumper(int index)
 {
 	Block currentBlock = mMemblockDevice.readBlock(index);
 	Inode name(currentBlock);
-	if (index == 0) return "/root";
+	if (index == 0) return "/";
 	else
-		return dirNameJumper(name.getParentHDDLoc()) + name.getType() + name.getName();
+		return dirNameJumper(name.getParentHDDLoc()) + name.getName() + name.getType();
 }
 
 void FileSystem::init()
@@ -501,7 +501,9 @@ std::string * FileSystem::seperateSlashes(char * filepath, int & size) const
 char * FileSystem::stringToCharP(const std::string& string) const
 {
 	char* newChar = new char[string.length()+1];
-	std::copy(string.begin(), string.end(), newChar);
+	//std::copy(string.begin(), string.end(), newChar);
+	for (int i = 0; i < string.length(); i++)
+		newChar[i] = string[i];
 	newChar[string.length()] = '\0';
 	return newChar;
 }

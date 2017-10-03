@@ -35,7 +35,7 @@ int main(void) {
 	char * folderpath = nullptr;
 	std::string content;
     do {
-        std::cout << user << ":" << currentDir << "$ ";
+        std::cout << user << ":" << fs.pwd() << "$ ";
 		getline(std::cin, userCommand);
 
         int nrOfCommands = parseCommandString(userCommand, commandArr);
