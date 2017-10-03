@@ -51,6 +51,8 @@ public:
 	Inode& operator=(const Inode &other);
 	bool lockFirstAvailableBlock();
 
+	bool removeNodeAt(int index);
+
 private:
 	void cleanup();
 	void copy(const Inode &other);

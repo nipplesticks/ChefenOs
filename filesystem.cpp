@@ -108,10 +108,7 @@ bool FileSystem::createFolder(char * folderName)
 	delete currentHolder;
 	currentHolder = nullptr;
 	// Update currentInode 
-	Block currentBlock = mMemblockDevice.readBlock(currentInode->getHDDLoc());
-
-	delete currentInode;
-	currentInode = new Inode(currentBlock);
+	refreshCurrentInode();
 	return !done;
 	
 }
@@ -327,6 +324,31 @@ bool FileSystem::changeDir(char * folderPath)
 	else return false;
 	return true;
 }
+bool FileSystem::removeFolder(char * path)
+{
+	bool removed = false;
+	Inode *removalNode = nullptr;
+	removalNode = walkDir(path);
+	if (removalNode != nullptr)
+	{
+		Block parentBlock = mMemblockDevice.readBlock(removalNode->getParentHDDLoc());
+		Inode * parentNode = new Inode(parentBlock);
+
+		removed = parentNode->removeNodeAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
+		
+		mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNode->toCharArray());
+
+		refreshCurrentInode();
+
+		delete removalNode;
+		delete parentNode;
+
+
+
+	}
+
+	return removed;
+}
 /* Compares all the names in the current Inode
 Return false if name found */
 bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
@@ -334,7 +356,7 @@ bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
 	//Read available blocks and store names
 	int numberOfBlocks = inode->getNrOfBlocks();
 	std::string* names = new std::string[numberOfBlocks];
-	for(int i = 1; i < numberOfBlocks; i++)
+	for(int i = 2; i < numberOfBlocks; i++)
 		if (inode->isBlockUsed(i))
 		{
 			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));
@@ -395,6 +417,39 @@ std::string * FileSystem::seperateSlashes(char * filepath, int & size) const
 	
 	}
 	return directories;
+}
+
+int FileSystem::getIndexOfNodeWithName(const char * name, const Inode * inode) const
+{
+	//Read available blocks and store names
+	int returnIndex = -1;
+	int numberOfBlocks = inode->getNrOfBlocks();
+	std::string* names = new std::string[numberOfBlocks];
+	for (int i = 2; i < numberOfBlocks && returnIndex == -1; i++)
+		if (inode->isBlockUsed(i))
+		{
+			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));
+			Inode curInode(currentBlock);
+			names[i] = curInode.getName();
+			if (name == names[i])
+			{
+				delete[] names;
+				names = nullptr;
+				returnIndex = i;
+			}
+
+		}
+	if (names != nullptr) delete[] names;
+	return returnIndex;
+}
+
+void FileSystem::refreshCurrentInode()
+{
+	// Update currentInode 
+	Block currentBlock = mMemblockDevice.readBlock(currentInode->getHDDLoc());
+
+	delete currentInode;
+	currentInode = new Inode(currentBlock);
 }
 
 char * FileSystem::stringToCharP(const std::string& string) const

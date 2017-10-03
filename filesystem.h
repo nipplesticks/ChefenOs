@@ -31,7 +31,7 @@ public:
     // removeFile(...);
 
     /* Removes a folder in the filesystem */
-    bool removeFolder();
+	bool removeFolder(char * path);
 
 	void createImage(char* folderPath);
 	bool readImage(char* folderPath);
@@ -51,6 +51,9 @@ public:
 
 	bool changeDir(char* folderPath);
 	
+	//Global removal
+	
+
 private:
 	// Help functions
 
@@ -70,6 +73,10 @@ private:
 
 	/* Splits a char* into strings based on '/' */
 	std::string* seperateSlashes(char* filepath, int& size) const;
+
+	int getIndexOfNodeWithName(const char * name, const Inode* inode) const;
+
+	void refreshCurrentInode();
 
 	void init();
 };

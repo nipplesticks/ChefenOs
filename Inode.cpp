@@ -85,6 +85,20 @@ bool Inode::lockFirstAvailableBlock()
 	return index != -1;
 }
 
+bool Inode::removeNodeAt(int index)
+{
+	bool removed = false;
+	if (index > 1 && index < nrOfBlocks)
+	{
+		removed = usedBlocks[index];
+		usedBlocks[index] = false;
+	}
+	
+
+	return removed;
+}
+
+
 #include <iostream>
 /*Converts all variables into a char array*/
 char * Inode::toCharArray() const
