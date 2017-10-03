@@ -204,6 +204,7 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 	delete tempNode;
 	return true;
 }
+
 std::string FileSystem::pwd()
 {
 	return dirNameJumper(currentInode->getHDDLoc());
@@ -213,6 +214,7 @@ std::string FileSystem::currentDir() const
 {
 	return currentDirectory;
 }
+
 void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
 {
 	//if (remove)
@@ -229,7 +231,7 @@ Inode* FileSystem::changeDir2(char * folderPath)
 	int stringSize = 0, stringIndex = 0;
 	std::string* folder = nullptr;
 	Inode* tempNode = nullptr;
-
+	// BUG WITH ../
 	//Relative or absolute path?
 	if (folderPath[0] == '/') // Absolute path
 	{
@@ -326,11 +328,12 @@ bool FileSystem::changeDir(char * folderPath)
 
 	return temp != nullptr;
 }
+
 bool FileSystem::changeDir3(char * folderPath)
 {
 	Inode *tempNode = nullptr;
 	tempNode = changeDir2(folderPath);
-	if (tempNode) changeCurrentInode(tempNode);
+	if (tempNode != nullptr) changeCurrentInode(tempNode);
 	else return false;
 	return true;
 }
@@ -501,6 +504,7 @@ char * FileSystem::stringToCharP(const std::string& string) const
 
 void FileSystem::changeCurrentInode(Inode * newCur)
 {
+	//TODO: Less deallocating and more set functions. 
 	delete currentInode;
 	currentInode = new Inode(*newCur);
 	delete newCur;
