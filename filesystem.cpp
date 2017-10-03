@@ -88,7 +88,7 @@ bool FileSystem::createFolder(char * folderName)
 				char* fName = stringToCharP(folderNames[arrayIndex].c_str());
 				Inode* tempCurrent = currentInode;
 				currentInode = currentHolder;
-				Inode* returnInode = changeDir2(fName);
+				Inode* returnInode = walkDir(fName);
 				delete currentHolder;
 				currentHolder = new Inode(*returnInode);
 				delete returnInode;
@@ -176,7 +176,7 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 
 	if (filepath)
 	{
-		tempNode = changeDir2(filepath);
+		tempNode = walkDir(filepath);
 		if (!tempNode)
 		{
 			delete tempNode;
@@ -228,7 +228,7 @@ void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
 }
 
 /* Fully working changeDir method with support for multiple slashes */
-Inode* FileSystem::changeDir2(char * folderPath)
+Inode* FileSystem::walkDir(char * folderPath)
 {
 	// Initialize variables
 	int nrOfInodeBlocks = currentInode->getNrOfBlocks();
@@ -321,22 +321,8 @@ void FileSystem::init()
 
 bool FileSystem::changeDir(char * folderPath)
 {
-	Inode * walker = new Inode(*currentInode);
-	Inode* temp = walkDir(walker, folderPath);
-	if (temp != nullptr)
-	{
-		delete currentInode;
-		currentInode = temp;
-	}
-
-
-	return temp != nullptr;
-}
-
-bool FileSystem::changeDir3(char * folderPath)
-{
 	Inode *tempNode = nullptr;
-	tempNode = changeDir2(folderPath);
+	tempNode = walkDir(folderPath);
 	if (tempNode != nullptr) changeCurrentInode(tempNode);
 	else return false;
 	return true;
@@ -363,93 +349,6 @@ bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
 		}
 	delete[] names;
 	return true;
-}
-
-Inode * FileSystem::walkDir(Inode* currentDirectory, char * next)
-{
-	int index = 0;
-	int walker = 0;
-	bool foundSlash = false;
-	char inThisFolder[25];
-	char toNextFolder[4096];
-
-	//find current Folder
-	while (next[index] != '\0' && !foundSlash)
-	{
-		if (next[index] != '/')
-		{
-			inThisFolder[walker++] = next[index++];
-		}
-		else
-		{
-			foundSlash = true;
-		}
-	}
-	
-	inThisFolder[walker] = '\0';
-	if (next[index] != '\0')
-	{
-		index++;
-	}
-	walker = 0;
-	while (next[index] != '\0')
-	{
-		toNextFolder[walker++] = next[index++];
-	}
-	toNextFolder[walker] = '\0';
-	//Hitta mappen i current directory
-	Block currentBlock;
-	if (!strcmp(inThisFolder, ".."))
-	{
-		currentBlock = mMemblockDevice.readBlock(currentDirectory->getBlockIndex(0));
-		Inode * temp = new Inode(currentBlock);
-		delete currentDirectory;
-		currentDirectory = new Inode(*temp);
-		delete temp;
-		std::string path = currentDirectory->getName();
-		path += currentDirectory->getType();
-		setCurrentDirStr(path, true);
-		return walkDir(currentDirectory, toNextFolder);
-	}
-	else
-	{
-		for (int i = 0; i < currentDirectory->getNrOfBlocks() && inThisFolder[0] != '\0'; i++)
-		{
-			if (currentDirectory->isBlockUsed(i))
-			{
-				Block currentBlock = mMemblockDevice.readBlock(currentDirectory->getBlockIndex(i));
-
-				Inode * temp = new Inode(currentBlock);
-				if (!strcmp(temp->getName(), inThisFolder))
-				{
-					delete currentDirectory;
-					currentDirectory = new Inode(*temp);
-					delete temp;
-					std::string path = currentDirectory->getName();
-					path += currentDirectory->getType();
-					setCurrentDirStr(path, false);
-					return walkDir(currentDirectory, toNextFolder);
-				}
-
-			}
-
-		}
-	}
-	
-	
-
-	if (next[0] == '\0')
-	{
-		return currentDirectory;
-	}
-
-	return nullptr;
-	//Läser från disk och hämtar mappens Inode
-	//Kalla funktionen igen fast med nya Inode pekaren och 
-	// resterande path. 
-
-
-	return nullptr;
 }
 
 std::string * FileSystem::seperateSlashes(char * filepath, int & size) const

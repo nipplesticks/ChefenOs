@@ -113,7 +113,7 @@ int main(void) {
 				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (folderpath != nullptr)
 				{
-					if (!fs.changeDir3(folderpath))
+					if (!fs.changeDir(folderpath))
 						std::cout << "bash: cd: " << folderpath << ": No such file or directory\n";
 					delete[] folderpath;
 					currentDir = fs.currentDir();

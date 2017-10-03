@@ -49,8 +49,7 @@ public:
 
 	void setCurrentDirStr(const std::string& str, bool remove);
 
-	bool changeDir(char * folderPath);
-	bool changeDir3(char* folderPath);
+	bool changeDir(char* folderPath);
 	
 private:
 	// Help functions
@@ -59,15 +58,13 @@ private:
 	Return false if name found */
 	bool isNameUnique(const char* name, const Inode* inode) const;
 
-	Inode* walkDir(Inode* currentDirectory, char * next);
-
 	/* Convert string to char* */
 	char* stringToCharP(const std::string& string) const;
 
 	/* Change current Inode */
 	void changeCurrentInode(Inode* newCur);
 
-	Inode* changeDir2(char* folderPath);
+	Inode* walkDir(char* folderPath);
 
 	std::string dirNameJumper(int index);
 
