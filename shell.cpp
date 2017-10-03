@@ -60,7 +60,6 @@ int main(void) {
 				delete[] folderpath;
                 break;
             case 3: // create E
-				
 				std::cout << fs.lol();
                 break;
             case 4: // cat E
