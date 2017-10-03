@@ -27,7 +27,7 @@ bool FileSystem::createFile(char * fileName, char* content, int sizeInBytes)
 	
 	return false;
 }
-#include <iostream>
+
 /* Creates a folder entry in the current INode
 - Supports multiple slashes
 - Supports relative or absoulte path
@@ -346,14 +346,12 @@ bool FileSystem::removeFolder(char * path)
 
 		char * parentNodeAsChar = parentNode->toCharArray();
 		mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeAsChar);
-		delete parentNodeAsChar;
+		delete[] parentNodeAsChar;
 
 		refreshCurrentInode();
 
 		delete removalNode;
 		delete parentNode;
-
-
 
 	}
 	
