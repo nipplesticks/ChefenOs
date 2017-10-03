@@ -17,7 +17,7 @@ int parseCommandString(const std::string &userCommand, std::string strArr[]);
 int findCommand(std::string &command);
 bool quit();
 char* getCommandsAsChar(const std::string &command, int expectedCommands, int nrOfCommands);
-
+void clearScr();
 
 std::string help();
 
@@ -59,9 +59,28 @@ int main(void) {
 				delete[] folderpath;
                 break;
             case 3: // create E
-				std::cout << fs.lol();
+				//std::cout << fs.lol();
+				// 1. Skriver create <filename>.
+				// 2. Editor öppnas
+				// 3. Skickar in filename och content
+				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (folderpath)
+				{
+					clearScr();
+					std::cout << "\t\t\t\t\t\tAdvanced Editor\n";
+					std::string content;
+					std::getline(std::cin, content);
+					fs.createFile(folderpath, content.c_str(), content.length());
+					//delete[] folderpath;
+				}
+				else
+				{
+					std::cout << "createImage <folderpath>\n";
+				}
+				
                 break;
             case 4: // cat E
+				std::cout << fs.lol();
                 break;
             case 5: // createImage E
 				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
@@ -144,7 +163,7 @@ int main(void) {
                 std::cout << help() << std::endl;
                 break;
 			case 15: // clear
-				if(system("clear")) system("cls"); // Funkar både på windows och linux
+				clearScr();
 				break;
             default:
                 std::cout << "Unknown command: " << commandArr[0] << std::endl;
@@ -154,7 +173,10 @@ int main(void) {
 
     return 0;
 }
-
+void clearScr()
+{
+	if (system("clear")) system("cls"); // Funkar både på windows och linux
+}
 int parseCommandString(const std::string &userCommand, std::string strArr[]) {
     std::stringstream ssin(userCommand);
     int counter = 0;

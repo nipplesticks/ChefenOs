@@ -22,7 +22,7 @@ public:
     */
 	void formatHDD();
     /* This function creates a file in the filesystem */
-	bool createFile(char* fileName, char* content, int sizeInBytes);
+	bool createFile(char* fileName, const char* content, int sizeInBytes);
 
     /* Creates a folder in the filesystem */
 	bool createFolder(char* folderName);

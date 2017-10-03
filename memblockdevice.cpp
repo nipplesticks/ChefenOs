@@ -155,7 +155,7 @@ std::string MemBlockDevice::toFile() const
 	std::string content;
 	content += std::to_string(freePointer) + "\r\n";
 	content += std::to_string(nrOfBlocks) + "\r\n";
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 13; i++)
 	{
 	std::cout << "Block id: " << i << std::endl;
 	for (int curblock = 0; curblock < 512; curblock++)

@@ -64,7 +64,7 @@ Return true if there is available blocks to write*/
 bool Inode::setBlock(int adress)
 {
 	bool wrote = false;
-	for (int i = 0; i < nrOfBlocks && !wrote; i++)
+	for (int i = 2; i < nrOfBlocks && !wrote; i++)
 	{
 		if (blockIndexes[i] == -1)
 		{

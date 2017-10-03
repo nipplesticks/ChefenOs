@@ -22,9 +22,35 @@ void FileSystem::formatHDD()
 	init();
 
 }
-bool FileSystem::createFile(char * fileName, char* content, int sizeInBytes)
+bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
+	int hddWriteIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode()); 
+	char* nodeType = new char[5];
+	nodeType[0] = 'f';
+	nodeType[1] = 'i';
+	nodeType[2] = 'l';
+	nodeType[3] = 'e';
+	nodeType[4] = '\0';
+ 	Inode* fileNode = new Inode(nodeType, fileName, hddWriteIndex, currentInode->getHDDLoc());
+
+	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
+
+	for (int i = 0; i < fileNode->getNrOfBlocks(); i++)
+		fileNode->setBlock(freeBlocks[i]);
+	delete[] freeBlocks;
+
+	char* fileNodeContent = fileNode->toCharArray();
+	mMemblockDevice.writeBlock(currentInode->getBlockIndex(currentInode->freeBlockInInode()), fileNodeContent);
+	delete[] fileNodeContent;
+	currentInode->lockFirstAvailableBlock();
+
+	mMemblockDevice.writeBlock(fileNode->getBlockIndex(fileNode->freeBlockInInode()), content);
 	
+	fileNode->lockFirstAvailableBlock();
+	
+	delete fileNode;
+	refreshCurrentInode();
+
 	return false;
 }
 
