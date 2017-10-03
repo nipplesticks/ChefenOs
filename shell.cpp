@@ -25,7 +25,7 @@ std::string help();
 
 int main(void) {
 
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+//	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	FileSystem fs;
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed
@@ -60,7 +60,6 @@ int main(void) {
 				delete[] folderpath;
                 break;
             case 3: // create E
-				
 				std::cout << fs.lol();
                 break;
             case 4: // cat E

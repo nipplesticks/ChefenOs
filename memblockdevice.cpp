@@ -4,13 +4,17 @@
 void MemBlockDevice::init()
 {
 	reset();
-	char* lol = new char[5];
-	lol[0] = 'r';
-	lol[1] = 'o';
-	lol[2] = 'o';
-	lol[3] = 't';
-	lol[4] = '\0';
-	Inode root("/", lol, 0, 0);
+	char* rootName = new char[5];
+	rootName[0] = 'r';
+	rootName[1] = 'o';
+	rootName[2] = 'o';
+	rootName[3] = 't';
+	rootName[4] = '\0';
+	char* rootType = new char[2];
+	rootType[0] = '/';
+	rootType[1] = '\0';
+
+	Inode root(rootType, rootName, 0, 0);
 	// Gives the root folder 12 blocks
 	for (int i = 1; i < root.getNrOfBlocks() + 1; i++)
 	{
@@ -55,7 +59,7 @@ Block& MemBlockDevice::operator[](int index) const {
     }
     else {
         return this->memBlocks[index];
-    }
+   }
 }
 
 int MemBlockDevice::spaceLeft() const {
@@ -109,13 +113,17 @@ void MemBlockDevice::reset() {
     for (int i = 0; i < this->nrOfBlocks; ++i) {
         this->memBlocks[i].reset('0');
     }
-	char* lol = new char[5];
-	lol[0] = 'r';
-	lol[1] = 'o';
-	lol[2] = 'o';
-	lol[3] = 't';
-	lol[4] = '\0';
-	Inode root("/", lol, 0, 0);
+	char* rootName = new char[5];
+	rootName[0] = 'r';
+	rootName[1] = 'o';
+	rootName[2] = 'o';
+	rootName[3] = 't';
+	rootName[4] = '\0';
+	char* rootType = new char[2];
+	rootType[0] = '/';
+	rootType[1] = '\0';
+
+	Inode root(rootType, rootName, 0, 0);
 	// Gives the root folder 12 blocks
 	for (int i = 1; i < root.getNrOfBlocks() + 1; i++)
 	{
@@ -141,14 +149,15 @@ int * MemBlockDevice::getFreeBlockAdresses()
 	}
 	return blocks;
 }
-
+#include <iostream>
 std::string MemBlockDevice::toFile() const
 {
 	std::string content;
 	content += std::to_string(freePointer) + "\r\n";
 	content += std::to_string(nrOfBlocks) + "\r\n";
-	for (int i = 0; i < nrOfBlocks; i++)
+	for (int i = 0; i < 1 ; i++)
 	{
+	std::cout << "Block id: " << i << std::endl;
 	for (int curblock = 0; curblock < 512; curblock++)
 	content += memBlocks[i][curblock];
 	}

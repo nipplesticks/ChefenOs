@@ -20,7 +20,6 @@ Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc)
 
 Inode::Inode(const Block & block)
 {
-	newUsed = true;
 	std::stringstream data;
 	std::string StringConverter;
 	data << block.toString();
@@ -85,6 +84,8 @@ bool Inode::lockFirstAvailableBlock()
 		usedBlocks[index] = true;
 	return index != -1;
 }
+
+#include <iostream>
 /*Converts all variables into a char array*/
 char * Inode::toCharArray() const
 {
@@ -92,7 +93,7 @@ char * Inode::toCharArray() const
 	
 	buffert[512] = '\0';
 	int index = 0;
-	while (buffert[index] != '\0') buffert[index++] = '0';
+	while (buffert[index] != '\0') buffert[index++] = 'a';
 	int buffertIndex = 0;
 
 
@@ -114,6 +115,8 @@ char * Inode::toCharArray() const
 
 		}
 	}
+//	for(int i = 0; i < 100; i++)
+//		std::cout << "i = " << i << "buffer is: " << buffert[i] << "\n";	
 	return buffert;
 }
 int Inode::freeBlockInInode()
@@ -134,12 +137,9 @@ void Inode::cleanup()
 {
 	delete[] name;
 	name = nullptr;
-	if (newUsed)
-	{
-		delete[] type;
-		type = nullptr;
+	delete[] type;
+	type = nullptr;
 
-	}
 }
 void Inode::charDeepCopy(char *src, char*& dst) const
 {
@@ -179,7 +179,7 @@ void Inode::copy(const Inode & other)
 bool Inode::copyCharArrln(char buffert[], int & buffertIndex, const char * arr) const
 {
 	int index = 0;
-
+	
 	while (arr[index] != '\0' && buffertIndex < 511)
 	{
 		buffert[buffertIndex++] = arr[index++];
@@ -203,7 +203,7 @@ bool Inode::copyIntln(char buffert[], int & buffertIndex, int value) const
 	buffert[buffertIndex++] = '\r';
 	buffert[buffertIndex++] = '\n';
 
-	return buffertIndex < 511;
+	return buffertIndex < 512;
 }
 
 Inode & Inode::operator=(const Inode & other)
@@ -260,5 +260,7 @@ int Inode::getNrOfBlocks() const
 
 int Inode::getBlockIndex(int index) const
 {
-	return blockIndexes[index];
+	if(index != -1)
+		return blockIndexes[index];
+	return -1;
 }
