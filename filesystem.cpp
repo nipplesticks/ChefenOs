@@ -60,7 +60,7 @@ bool FileSystem::createFolder(char * folderName)
 				char* currentType = stringToCharP(std::string("/"));
 				Inode *newInode = new Inode(currentType, currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
 				int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-				for (int i = 1; i < newInode->getNrOfBlocks(); i++)
+				for (int i = 2; i < newInode->getNrOfBlocks(); i++)
 					newInode->setBlock(freeBlocks[i]);
 				delete[] freeBlocks;
 
@@ -68,8 +68,7 @@ bool FileSystem::createFolder(char * folderName)
 				{
 					char* currenINodeContent = currentHolder->toCharArray();
 					char* newINodeContent = newInode->toCharArray();
-//					std::cout << currenINodeContent;
-//					std::cout << newInode->getHDDLoc();
+
 					mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currenINodeContent);
 					mMemblockDevice.writeBlock(newInode->getHDDLoc(), newINodeContent);
 
@@ -77,7 +76,7 @@ bool FileSystem::createFolder(char * folderName)
 					delete[] newINodeContent;
 
 				}
-			//	std::cout << lol();
+
 				delete currentHolder;
 				currentHolder = newInode;
 				arrayIndex++;
@@ -334,6 +333,7 @@ bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
 	//Read available blocks and store names
 	int numberOfBlocks = inode->getNrOfBlocks();
 	std::string* names = new std::string[numberOfBlocks];
+
 	for(int i = 1; i < numberOfBlocks; i++)
 		if (inode->isBlockUsed(i))
 		{
