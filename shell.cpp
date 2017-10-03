@@ -110,6 +110,7 @@ int main(void) {
             case 10: // mv
                 break;
             case 11: // mkdir E
+				
 				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (folderpath != nullptr)
 				{
@@ -121,6 +122,7 @@ int main(void) {
 				{
 					std::cout << "mkdir <folderpath>" << std::endl;
 				}
+				
                 break;
             case 12: // cd E
 				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);

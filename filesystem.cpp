@@ -324,19 +324,25 @@ bool FileSystem::changeDir(char * folderPath)
 	else return false;
 	return true;
 }
+
 bool FileSystem::removeFolder(char * path)
 {
 	bool removed = false;
 	Inode *removalNode = nullptr;
-	removalNode = walkDir(path);
-	if (removalNode != nullptr)
+	
+	removalNode = walkDir(path); //gets Inode which points to folder on disk
+	if (removalNode != nullptr) //if exists
 	{
-		Block parentBlock = mMemblockDevice.readBlock(removalNode->getParentHDDLoc());
+		Block parentBlock = mMemblockDevice.readBlock(removalNode->getParentHDDLoc()); //Gets parent inode to the removal inode
 		Inode * parentNode = new Inode(parentBlock);
 
+		//Gets index in blockedUsed array with name of the removal node. Sets this index to false.
 		removed = parentNode->removeNodeAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
 		
-		mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNode->toCharArray());
+
+		char * parentNodeAsChar = parentNode->toCharArray();
+		mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeAsChar);
+		delete parentNodeAsChar;
 
 		refreshCurrentInode();
 
