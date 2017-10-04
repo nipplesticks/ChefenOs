@@ -235,6 +235,17 @@ void Inode::setName(char *& name)
 	this->name = name;
 }
 
+void Inode::setParentHDDLoc(int adress)
+{
+	this->parentHDDLoc = adress;
+}
+
+void Inode::setHDDLoc(int adress)
+{
+	this->hddLoc = adress;
+
+}
+
 int Inode::getHDDLoc() const
 {
 	return hddLoc;
@@ -271,7 +282,7 @@ int Inode::getNrOfBlocks() const
 	return nrOfBlocks;
 }
 
-int Inode::getBlockIndex(int index) const
+int Inode::getHDDadress(int index) const
 {
 	if(index != -1)
 		return blockIndexes[index];

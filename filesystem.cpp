@@ -24,7 +24,8 @@ void FileSystem::formatHDD()
 }
 bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
-	int hddWriteIndex = currentInode->getBlockIndex(currentInode->freeBlockInInode()); 
+	int hddWriteIndex = currentInode->getHDDadress(currentInode->freeBlockInInode()); 
+
 	char* nodeType = new char[5];
 	nodeType[0] = 'f';
 	nodeType[1] = 'i';
@@ -35,19 +36,24 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 
-	for (int i = 0; i < fileNode->getNrOfBlocks(); i++)
+	for (int i = 2; i < fileNode->getNrOfBlocks(); i++)
 		fileNode->setBlock(freeBlocks[i]);
 	delete[] freeBlocks;
 
-	char* fileNodeContent = fileNode->toCharArray();
-	mMemblockDevice.writeBlock(currentInode->getBlockIndex(currentInode->freeBlockInInode()), fileNodeContent);
-	delete[] fileNodeContent;
-	currentInode->lockFirstAvailableBlock();
 
-	mMemblockDevice.writeBlock(fileNode->getBlockIndex(fileNode->freeBlockInInode()), content);
-	
+	int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
+
+	currentInode->lockFirstAvailableBlock();
 	fileNode->lockFirstAvailableBlock();
+
+	char* fileNodeContent = fileNode->toCharArray();
+	char* currentNodeContent = currentInode->toCharArray();
+	mMemblockDevice.writeBlock(freeNodewriteIndex, content);
+	mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);
+	mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentNodeContent);
 	
+	delete[] fileNodeContent;
+	delete[] currentNodeContent;
 	delete fileNode;
 	refreshCurrentInode();
 
@@ -84,7 +90,7 @@ bool FileSystem::createFolder(char * folderName)
 		// Does there exist a folder with this name in the current directory?
 		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))
 		{
-			int hddWriteIndex = currentHolder->getBlockIndex(currentHolder->freeBlockInInode());
+			int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode());
 			if (hddWriteIndex != -1)
 			{
 
@@ -220,7 +226,7 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 
 	for (int i = 2; i < nrOfBlocks; i++)
 	{
-		blockIndexes[i] = tempNode->getBlockIndex(i);
+		blockIndexes[i] = tempNode->getHDDadress(i);
 		if (tempNode->isBlockUsed(i))
 		{
 			Inode printer(mMemblockDevice.readBlock(blockIndexes[i]));
@@ -296,7 +302,7 @@ Inode* FileSystem::walkDir(char * folderPath)
 		}
 		else if (tempNode->isBlockUsed(i))
 		{
-			Block curBlock = mMemblockDevice.readBlock(tempNode->getBlockIndex(i));
+			Block curBlock = mMemblockDevice.readBlock(tempNode->getHDDadress(i));
 			Inode* tempNode2 = new Inode(curBlock);
 
 			//Checking if the folder is in the currentInode table
@@ -356,6 +362,51 @@ bool FileSystem::changeDir(char * folderPath)
 	return true;
 }
 
+bool FileSystem::copyTarget(char * target, char * destination)
+{
+	bool copySucceed = false;
+	
+	//Få tag i target noden och gör en kopia på den
+	Inode * targetNode = walkDir(target);
+
+	//Gå till destinationen och se till att det är en mapp
+	Inode * destinationNode = walkDir(destination);
+	if (targetNode != nullptr &&
+		destinationNode != nullptr &&
+		*destinationNode->getType() == '/' && 
+		isNameUnique(targetNode->getName(), destinationNode))
+	{
+		//Ändra parent och hdd location i target
+		targetNode->setParentHDDLoc(destinationNode->getHDDLoc());
+		int indexInDestinationArray = destinationNode->freeBlockInInode();
+		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
+		targetNode->setHDDLoc(targetNewAdressOnHDD);
+		
+		//Sätt target på destinationen
+		destinationNode->lockFirstAvailableBlock();
+
+		//Skriv till disk
+		char * targetChar = targetNode->toCharArray();
+		char * destinationChar = destinationNode->toCharArray();
+		mMemblockDevice.writeBlock(targetNewAdressOnHDD, targetChar);
+		mMemblockDevice.writeBlock(destinationNode->getHDDLoc(), destinationChar);
+		
+		delete[] targetChar;
+		delete[] destinationChar;
+
+
+		refreshCurrentInode();
+		copySucceed = true;
+	}
+
+	if (targetNode != nullptr) delete targetNode;
+	if (destinationNode != nullptr) delete destinationNode;
+	
+
+
+	return copySucceed;
+}
+
 bool FileSystem::removeFolder(char * path)
 {
 	bool removed = false;
@@ -394,7 +445,7 @@ bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
 	for(int i = 2; i < numberOfBlocks; i++)
 		if (inode->isBlockUsed(i))
 		{
-			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));
+			Block currentBlock = mMemblockDevice.readBlock(inode->getHDDadress(i));
 			Inode curInode(currentBlock);
 			names[i] = curInode.getName();
 			if (name == names[i])
@@ -463,7 +514,7 @@ int FileSystem::getIndexOfNodeWithName(const char * name, const Inode * inode) c
 	for (int i = 2; i < numberOfBlocks && returnIndex == -1; i++)
 		if (inode->isBlockUsed(i))
 		{
-			Block currentBlock = mMemblockDevice.readBlock(inode->getBlockIndex(i));
+			Block currentBlock = mMemblockDevice.readBlock(inode->getHDDadress(i));
 			Inode curInode(currentBlock);
 			names[i] = curInode.getName();
 			if (name == names[i])

@@ -31,7 +31,8 @@ int main(void) {
 	std::string currentDir = fs.currentDir();    // current directory, used for output
     bool bRun = true;
 
-	char * folderpath = nullptr;
+	char * target = nullptr;
+	char * destination = nullptr;
 	std::string content;
     do {
         std::cout << user << ":" << fs.pwd() << "$ ";
@@ -50,27 +51,27 @@ int main(void) {
 				fs.formatHDD();
                 break;
             case 2: // ls E
-				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (fs.listCopy(folderpath, content))
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (fs.listCopy(target, content))
 					std::cout << content << std::endl;
 				else
-					std::cout << "ls: cannot access '" << folderpath << "': No such file or directory\n";
+					std::cout << "ls: cannot access '" << target << "': No such file or directory\n";
 				content = "";
-				delete[] folderpath;
+				delete[] target;
                 break;
             case 3: // create E
 				//std::cout << fs.lol();
 				// 1. Skriver create <filename>.
 				// 2. Editor öppnas
 				// 3. Skickar in filename och content
-				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (folderpath)
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target)
 				{
 					clearScr();
 					std::cout << "\t\t\t\t\t\tAdvanced Editor\n";
 					std::string content;
 					std::getline(std::cin, content);
-					fs.createFile(folderpath, content.c_str(), content.length());
+					fs.createFile(target, content.c_str(), content.length());
 					//delete[] folderpath;
 				}
 				else
@@ -83,11 +84,11 @@ int main(void) {
 				std::cout << fs.lol();
                 break;
             case 5: // createImage E
-				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (folderpath)
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target)
 				{
-					fs.createImage(folderpath);
-					delete[] folderpath;
+					fs.createImage(target);
+					delete[] target;
 				}
 				else
 				{
@@ -95,11 +96,11 @@ int main(void) {
 				}
                 break;
             case 6: // restoreImage E
-				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (folderpath)
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target)
 				{
-					fs.readImage(folderpath);
-					delete[] folderpath;
+					fs.readImage(target);
+					delete[] target;
 				}
 				else
 				{
@@ -107,14 +108,14 @@ int main(void) {
 				}
                 break;
             case 7: // rm E
-				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (folderpath)
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target)
 				{
-					if (!fs.removeFolder(folderpath))
+					if (!fs.removeFolder(target))
 					{
-						std::cout << "rm: cannot access '" << folderpath << "': No such file or directory\n";
+						std::cout << "rm: cannot access '" << target << "': No such file or directory\n";
 					}
-					delete[] folderpath;
+					delete[] target;
 				}
 				else
 				{
@@ -122,19 +123,33 @@ int main(void) {
 				}
                 break;
             case 8: // cp E
+				target = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
+				destination = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
+				if (target && destination)
+				{
+					if (!fs.copyTarget(target, destination))
+					{
+						std::cout << "cp: cannot access '" << target << " or " << destination << "': No such file or directory\n";
+					}
+					delete[] target;
+					delete[] destination;
+				}
+				else
+				{
+					std::cout << "cp <target> <destination>\n";
+				}
                 break;
             case 9: // append
                 break;
             case 10: // mv
                 break;
-            case 11: // mkdir E
-				
-				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (folderpath != nullptr)
+            case 11: // mkdir E				
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target != nullptr)
 				{
-					if (!fs.createFolder(folderpath))
-						std::cout << "mkdir: cannot create directory '" << folderpath << "': File exists\n";
-					delete[] folderpath;
+					if (!fs.createFolder(target))
+						std::cout << "mkdir: cannot create directory '" << target << "': File exists\n";
+					delete[] target;
 				}
 				else
 				{
@@ -143,12 +158,12 @@ int main(void) {
 				
                 break;
             case 12: // cd E
-				folderpath = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (folderpath != nullptr)
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target != nullptr)
 				{
-					if (!fs.changeDir(folderpath))
-						std::cout << "bash: cd: " << folderpath << ": No such file or directory\n";
-					delete[] folderpath;
+					if (!fs.changeDir(target))
+						std::cout << "bash: cd: " << target << ": No such file or directory\n";
+					delete[] target;
 					currentDir = fs.currentDir();
 				}
 				else

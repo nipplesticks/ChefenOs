@@ -30,6 +30,9 @@ public:
 	~Inode();
 
 	void setName(char *&name);
+	void setParentHDDLoc(int adress);
+	void setHDDLoc(int adress);
+
 	int getHDDLoc() const;
 	int getParentHDDLoc() const;
 	time_t getTimeStamp() const;
@@ -39,7 +42,8 @@ public:
 	/* Return true if block is in use */
 	bool isBlockUsed(int index)  const;
 	int getNrOfBlocks() const;
-	int getBlockIndex(int index) const;
+	/* Returns adress to the hdd*/
+	int getHDDadress(int index) const;
 
 	bool setBlock(int adress);
 	/* REMEBER TO REMOVE */

@@ -30,6 +30,9 @@ public:
     /* Removes a file in the filesystem */
     // removeFile(...);
 
+	/*Copy target to destination*/
+	bool copyTarget(char * target, char * destination);
+
     /* Removes a folder in the filesystem */
 	bool removeFolder(char * path);
 

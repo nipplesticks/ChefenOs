@@ -141,9 +141,9 @@ int MemBlockDevice::size() const {
 
 int * MemBlockDevice::getFreeBlockAdresses() 
 {
-	int* blocks = new int[12];
+	int* blocks = new int[10];
 	// Gives 12 free blocks
-	for (unsigned i = 0; i < 12; i++)
+	for (unsigned i = 0; i < 10; i++)
 	{
 		blocks[i] = freePointer++;
 	}
