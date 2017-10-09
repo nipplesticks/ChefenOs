@@ -24,14 +24,11 @@ void FileSystem::formatHDD()
 }
 bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
-	int hddWriteIndex = currentInode->getHDDadress(currentInode->freeBlockInInode()); 
 
-	char* nodeType = new char[5];
-	nodeType[0] = 'f';
-	nodeType[1] = 'i';
-	nodeType[2] = 'l';
-	nodeType[3] = 'e';
-	nodeType[4] = '\0';
+	
+	int hddWriteIndex = currentInode->getHDDadress(currentInode->freeBlockInInode());
+
+	char* nodeType = constChartoChar("file");
  	Inode* fileNode = new Inode(nodeType, fileName, hddWriteIndex, currentInode->getHDDLoc());
 
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
@@ -72,18 +69,7 @@ bool FileSystem::createFolder(char * folderName)
 	Inode* currentHolder = nullptr;
 	bool done = false;
 
-	// Relative or absolute path?
-	if (folderName[0] == '/')
-	{
-		Block rootBlock = mMemblockDevice.readBlock(0);
-		currentHolder = new Inode(rootBlock);
-		folderNames = seperateSlashes(++folderName, arraySize);
-	}
-	else
-	{
-		currentHolder = new Inode(*currentInode);
-		folderNames = seperateSlashes(folderName, arraySize);
-	}
+	currentHolder = pathSolver(folderName, folderNames, arraySize);
 
 	while (arrayIndex != arraySize)
 	{	
@@ -231,7 +217,8 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 		{
 			Inode printer(mMemblockDevice.readBlock(blockIndexes[i]));
 			holder += printer.getName();
-			holder += printer.getType();
+			// Folders print / and files dont
+			if(printer.getType()[0] =='/') holder += printer.getType();
 			holder += "\n";
 		}
 		else
@@ -256,9 +243,6 @@ std::string FileSystem::currentDir() const
 
 void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
 {
-	//if (remove)
-		//currentDirectory.erase(currentDirectory.find(str),currentDirectory.length());
-	//else
 		currentDirectory = str;
 }
 
@@ -270,19 +254,8 @@ Inode* FileSystem::walkDir(char * folderPath)
 	int stringSize = 0, stringIndex = 0;
 	std::string* folder = nullptr;
 	Inode* tempNode = nullptr;
-	// BUG WITH ../
-	//Relative or absolute path?
-	if (folderPath[0] == '/') // Absolute path
-	{
-		Block rootBlock = mMemblockDevice.readBlock(0);
-		tempNode = new Inode(rootBlock);
-		folder = seperateSlashes(++folderPath, stringSize);
-	}
-	else // Relative path
-	{
-		tempNode = new Inode(*currentInode);
-		folder = seperateSlashes(folderPath, stringSize);
-	}
+
+	tempNode = pathSolver(folderPath, folder, stringSize);
 
 	//Locate folder in current Inode table
 	for (int i = 1; i < nrOfInodeBlocks && (stringSize != stringIndex); i++)
@@ -291,10 +264,10 @@ Inode* FileSystem::walkDir(char * folderPath)
 		{
 			Block curBlock = mMemblockDevice.readBlock(tempNode->getParentHDDLoc());
 			Inode* tempNode2 = new Inode(curBlock);
-			
+
 			delete tempNode;
 			tempNode = tempNode2;
-			
+
 			//Resets and check next folder
 			i = 0;
 			stringIndex++;
@@ -311,13 +284,13 @@ Inode* FileSystem::walkDir(char * folderPath)
 				//Resets and check next folder
 				i = 0;
 				stringIndex++;
-				
+
 				delete tempNode;
 				tempNode = nullptr;
 				tempNode = tempNode2;
 			}
 			else
-			{ 
+			{
 				delete tempNode2;
 				tempNode2 = nullptr;
 			}
@@ -337,9 +310,27 @@ std::string FileSystem::dirNameJumper(int index)
 {
 	Block currentBlock = mMemblockDevice.readBlock(index);
 	Inode name(currentBlock);
-	if (index == 0) return "/";
+	if (index == 0) return "/";	//Root dir reached
 	else
 		return dirNameJumper(name.getParentHDDLoc()) + name.getName() + name.getType();
+}
+
+Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int& arraySize)
+{
+	Inode* returnNode = nullptr;
+	// Relative or absolute path?
+	if (folderName[0] == '/')
+	{
+		Block rootBlock = mMemblockDevice.readBlock(0);
+		returnNode = new Inode(rootBlock);
+		folderNames = seperateSlashes(++folderName, arraySize);
+	}
+	else
+	{
+		returnNode = new Inode(*currentInode);
+		folderNames = seperateSlashes(folderName, arraySize);
+	}
+	return returnNode;
 }
 
 void FileSystem::init()
@@ -536,6 +527,17 @@ void FileSystem::refreshCurrentInode()
 
 	delete currentInode;
 	currentInode = new Inode(currentBlock);
+}
+
+char * FileSystem::constChartoChar(const char * string) const
+{
+	int charSize = 0;
+	while (string[charSize++] != '\0');
+	char* returnChar = new char[charSize];
+	for (int i = 0; i < charSize; i++)
+		returnChar[i] = string[i];
+
+	return returnChar;
 }
 
 char * FileSystem::stringToCharP(const std::string& string) const

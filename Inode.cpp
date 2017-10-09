@@ -98,8 +98,6 @@ bool Inode::removeNodeAt(int index)
 	return removed;
 }
 
-
-#include <iostream>
 /*Converts all variables into a char array*/
 char * Inode::toCharArray() const
 {

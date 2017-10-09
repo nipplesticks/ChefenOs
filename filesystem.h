@@ -64,6 +64,7 @@ private:
 	Return false if name found */
 	bool isNameUnique(const char* name, const Inode* inode) const;
 
+
 	/* Convert string to char* */
 	char* stringToCharP(const std::string& string) const;
 
@@ -74,12 +75,16 @@ private:
 
 	std::string dirNameJumper(int index);
 
+	Inode* pathSolver(char* folderName, std::string*& folderNames, int& arraySize);
+
 	/* Splits a char* into strings based on '/' */
 	std::string* seperateSlashes(char* filepath, int& size) const;
 
 	int getIndexOfNodeWithName(const char * name, const Inode* inode) const;
 
 	void refreshCurrentInode();
+
+	char* constChartoChar(const char* string) const;
 
 	void init();
 };
