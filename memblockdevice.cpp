@@ -13,7 +13,7 @@ void MemBlockDevice::init()
 	{
 		root.setBlock(i);
 	}
-	freePointer = root.getNrOfBlocks(); // Next free block
+	freePointer = root.getNrOfBlocks() - 1; // Next free block
 	char* content = root.toCharArray();
 	writeBlock(0, content);
 	delete[] content;

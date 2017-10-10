@@ -24,6 +24,15 @@ TODO:
 */
 bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
+
+	// Check path
+	std::string *folderNames = nullptr;
+	int arraySize = 0, arrayIndex = 0;
+
+	Inode* currentHolder = pathSolver(fileName, folderNames, arraySize);
+
+
+
 	bool isCreated = false;
 	// Setup pre-node creation
 	int hddWriteIndex = currentInode->getHDDadress(currentInode->freeBlockInInode());
@@ -80,7 +89,7 @@ bool FileSystem::createFolder(char * folderName)
 	std::string *folderNames = nullptr;
 	Inode* currentHolder = nullptr;
 	bool done = false;
-
+	// 
 	currentHolder = pathSolver(folderName, folderNames, arraySize);
 
 	while (arrayIndex != arraySize)
