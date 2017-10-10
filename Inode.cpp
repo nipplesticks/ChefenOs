@@ -1,15 +1,14 @@
 #include "Inode.h"
 
 Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc) 
-	: type(type), name(name), hddLoc(hddLoc), parentHDDLoc(parentHDDLoc)
-{
-	timestamp = time(0);
-	nrOfBlocks = 12;
-	
-	this->blockIndexes[0] = this->hddLoc;
-	this->usedBlocks[0] = true;
-	this->blockIndexes[1] = this->parentHDDLoc;
-	this->usedBlocks[1] = true;
+	: type(type), name(name), hddLoc(hddLoc), parentHDDLoc(parentHDDLoc),
+	nrOfBlocks(12), timestamp(time(0))
+{	
+	blockIndexes[0] = this->hddLoc;
+	usedBlocks[0] = true;
+
+	blockIndexes[1] = this->parentHDDLoc;
+	usedBlocks[1] = true;
 
 	for (int i = 2; i < nrOfBlocks; i++)
 	{
@@ -168,11 +167,10 @@ void Inode::charDeepCopy(char *src, char*& dst) const
 }
 void Inode::copy(const Inode & other)
 {
-	// Yttlig kopiering
-	newUsed = true;
-	charDeepCopy(other.name, name);
-	
+
+	charDeepCopy(other.name, name);	
 	charDeepCopy(other.type, type);
+
 	hddLoc = other.hddLoc;
 	parentHDDLoc = other.parentHDDLoc;
 

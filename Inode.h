@@ -20,8 +20,6 @@ private:
 	bool usedBlocks[12];
 	int blockIndexes[12];
 
-	bool newUsed = false;
-
 public:
 	Inode(char * type, char * name, int hddLoc, int parentHDDLoc);
 	Inode(const Block & block);
