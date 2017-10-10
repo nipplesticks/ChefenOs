@@ -96,7 +96,7 @@ bool FileSystem::createFolder(char * folderName)
 	while (arrayIndex != arraySize)
 	{	
 		// Does there exist a folder with this name in the current directory?
-		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder))
+		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder) && folderNames[arrayIndex] != "..")
 		{
 			int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode());
 			if (hddWriteIndex != -1)
@@ -377,10 +377,6 @@ void FileSystem::init()
 
 	currentDirectory = path;
 }
-
-
-
-
 
 bool FileSystem::changeDir(char * folderPath)
 {
