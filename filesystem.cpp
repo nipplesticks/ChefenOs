@@ -153,31 +153,30 @@ bool FileSystem::readImage(char * folderPath)
 	auto file = std::fstream(folderPath, std::ios::in | std::ios::binary);
 	if (file.good())
 	{
+		// Calculate how many characters in file
 		file.seekg(0, std::ios::end);
 		size_t size = file.tellg();
 
+		// Reset filepointer to begining
 		file.seekg(0, std::ios_base::beg);
-
+		
 		char* buffer = new char[size+1];
 		buffer[size] = '\0';
+
+		// Fill buffer with file content
 		file.read(buffer, size);
-		
 		file.close();
+		
+		// Position in file
 		int bufferIndex = 0;
 		std::string container;
-		while (buffer[bufferIndex] != '\r')
-		{
-			container += buffer[bufferIndex++];
-		}
+		// Read free Pointer
+		container = readFileLine(buffer, bufferIndex);
 		int freePointer = std::stoi(container);
-		container = "";
-		bufferIndex+=2;
-		while (buffer[bufferIndex] != '\r')
-		{
-			container += buffer[bufferIndex++];
-		}
-		bufferIndex += 2;
+		// Read nrOfBlocks
+		container = readFileLine(buffer, bufferIndex);
 		int nrOfBlocks = std::stoi(container);
+
 		mMemblockDevice.reset();
 
 		
@@ -538,6 +537,17 @@ char * FileSystem::constChartoChar(const char * string) const
 		returnChar[i] = string[i];
 
 	return returnChar;
+}
+
+std::string FileSystem::readFileLine(char * buffer, int & bufferIndex)
+{
+	std::string line;
+	while (buffer[bufferIndex] != '\r')
+	{
+		line += buffer[bufferIndex++];
+	}
+	bufferIndex += 2; // Jump over /r/n
+	return line;
 }
 
 char * FileSystem::stringToCharP(const std::string& string) const

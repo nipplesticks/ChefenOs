@@ -38,7 +38,7 @@ public:
 	int* getFreeBlockAdresses();
 	
 	void setFreePointer(int freePointer);
-
+	char* constChartoChar(const char * string) const;
 	std::string toFile() const;
 };
 

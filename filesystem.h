@@ -75,6 +75,7 @@ private:
 
 	std::string dirNameJumper(int index);
 
+	/* Determines if the path is absolute or relative and stores each dir in string* */
 	Inode* pathSolver(char* folderName, std::string*& folderNames, int& arraySize);
 
 	/* Splits a char* into strings based on '/' */
@@ -85,6 +86,8 @@ private:
 	void refreshCurrentInode();
 
 	char* constChartoChar(const char* string) const;
+
+	std::string readFileLine(char* buffer, int& bufferIndex);
 
 	void init();
 };

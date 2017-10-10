@@ -4,19 +4,12 @@
 void MemBlockDevice::init()
 {
 	reset();
-	char* rootName = new char[5];
-	rootName[0] = 'r';
-	rootName[1] = 'o';
-	rootName[2] = 'o';
-	rootName[3] = 't';
-	rootName[4] = '\0';
-	char* rootType = new char[2];
-	rootType[0] = '/';
-	rootType[1] = '\0';
+	char* rootName = constChartoChar("root");
+	char* rootType = constChartoChar("/");
 
 	Inode root(rootType, rootName, 0, 0);
 	// Gives the root folder 12 blocks
-	for (int i = 1; i < root.getNrOfBlocks() + 1; i++)
+	for (int i = 1; i < root.getNrOfBlocks(); i++)
 	{
 		root.setBlock(i);
 	}
@@ -149,15 +142,25 @@ int * MemBlockDevice::getFreeBlockAdresses()
 	}
 	return blocks;
 }
-#include <iostream>
+
+char * MemBlockDevice::constChartoChar(const char * string) const
+{
+	int charSize = 0;
+	while (string[charSize++] != '\0');
+	char* returnChar = new char[charSize];
+	for (int i = 0; i < charSize; i++)
+		returnChar[i] = string[i];
+
+	return returnChar;
+}
+
 std::string MemBlockDevice::toFile() const
 {
 	std::string content;
 	content += std::to_string(freePointer) + "\r\n";
 	content += std::to_string(nrOfBlocks) + "\r\n";
-	for (int i = 0; i < 13; i++)
+	for (int i = 0; i < nrOfBlocks; i++)
 	{
-	std::cout << "Block id: " << i << std::endl;
 	for (int curblock = 0; curblock < 512; curblock++)
 	content += memBlocks[i][curblock];
 	}
