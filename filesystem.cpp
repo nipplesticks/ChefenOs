@@ -19,16 +19,11 @@ void FileSystem::formatHDD()
 /*	
 TODO: 
 	- Files greater than 512
-	- Relative of absolute path
 	- Unique name checking
 */
 bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
 
-	// Check path
-	// 1. filename kan vara /hejsan/tjena.txt
-	// 2. Då ska vi gå till hejsan
-	// 3. Vi ska nu skapa en fil som heter tjena.txt
 	int arraySize = 0;
 	std::string* folders;
 	Inode * temp = pathSolver(fileName, folders, arraySize);
@@ -305,7 +300,7 @@ Inode* FileSystem::walkDir(char * folderPath)
 	tempNode = pathSolver(folderPath, folder, stringSize);
 
 	//Locate folder in current Inode table
-	for (int i = 1; i < nrOfInodeBlocks && (stringSize != stringIndex); i++)
+	for (int i = 2; i < nrOfInodeBlocks && (stringSize != stringIndex); i++)
 	{
 		if (folder[stringIndex] == "..")
 		{
@@ -358,8 +353,7 @@ std::string FileSystem::dirNameJumper(int index)
 	Block currentBlock = mMemblockDevice.readBlock(index);
 	Inode name(currentBlock);
 	if (index == 0) return "/";	//Root dir reached
-	else
-		return dirNameJumper(name.getParentHDDLoc()) + name.getName() + name.getType();
+	else return dirNameJumper(name.getParentHDDLoc()) + name.getName() + name.getType();
 }
 
 Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int& arraySize)
@@ -664,7 +658,6 @@ std::string FileSystem::readFileLine(char * buffer, int & bufferIndex)
 char * FileSystem::stringToCharP(const std::string& string) const
 {
 	char* newChar = new char[string.length()+1];
-	//std::copy(string.begin(), string.end(), newChar);
 	for (int i = 0; i < string.length(); i++)
 		newChar[i] = string[i];
 	newChar[string.length()] = '\0';

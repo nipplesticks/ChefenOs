@@ -37,6 +37,7 @@ public:
 	bool removeFolder(char * path);
 
 	void createImage(char* folderPath);
+
 	bool readImage(char* folderPath);
     /* Function will move the current location to a specified location in the filesystem */
     // goToFolder(...);
@@ -64,13 +65,13 @@ private:
 	Return false if name found */
 	bool isNameUnique(const char* name, const Inode* inode) const;
 
-
 	/* Convert string to char* */
 	char* stringToCharP(const std::string& string) const;
 
 	/* Change current Inode */
 	void changeCurrentInode(Inode* newCur);
-
+	
+	/* Returns the Inode associated with given folderpath */
 	Inode* walkDir(char* folderPath);
 
 	std::string dirNameJumper(int index);
@@ -84,7 +85,8 @@ private:
 	int getIndexOfNodeWithName(const char * name, const Inode* inode) const;
 
 	void refreshCurrentInode();
-
+	
+	/* Converts a const char into a char */
 	char* constChartoChar(const char* string) const;
 
 	std::string readFileLine(char* buffer, int& bufferIndex);
