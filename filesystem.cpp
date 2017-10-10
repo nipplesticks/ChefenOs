@@ -33,7 +33,7 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 
-	for (int i = 2; i < fileNode->getNrOfBlocks(); i++)
+	for (int i = 0; i < fileNode->getNrOfBlocks()-2; i++)
 		fileNode->setBlock(freeBlocks[i]);
 	delete[] freeBlocks;
 
@@ -84,7 +84,7 @@ bool FileSystem::createFolder(char * folderName)
 				char* currentType = stringToCharP(std::string("/"));
 				Inode *newInode = new Inode(currentType, currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
 				int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-				for (int i = 2; i < newInode->getNrOfBlocks(); i++)
+				for (int i = 0; i < newInode->getNrOfBlocks() - 2; i++)
 					newInode->setBlock(freeBlocks[i]);
 				delete[] freeBlocks;
 
