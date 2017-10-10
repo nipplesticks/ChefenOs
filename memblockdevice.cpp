@@ -131,7 +131,7 @@ void MemBlockDevice::reset() {
 int MemBlockDevice::size() const {
     return this->nrOfBlocks;
 }
-
+/*Remember to delete*/
 int * MemBlockDevice::getFreeBlockAdresses() 
 {
 	int* blocks = new int[10];

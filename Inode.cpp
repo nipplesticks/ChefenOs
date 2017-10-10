@@ -234,12 +234,22 @@ void Inode::setName(char *& name)
 void Inode::setParentHDDLoc(int adress)
 {
 	this->parentHDDLoc = adress;
+	this->blockIndexes[1] = adress;
 }
 
 void Inode::setHDDLoc(int adress)
 {
 	this->hddLoc = adress;
+	this->blockIndexes[0] = adress;
+}
+/*Returns old adress*/
+int Inode::changeBlockAdress(int index, int newAdress)
+{
+	int oldIndex = blockIndexes[index];
+	blockIndexes[index] = newAdress;
 
+
+	return oldIndex;
 }
 
 int Inode::getHDDLoc() const

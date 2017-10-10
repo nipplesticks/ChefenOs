@@ -343,6 +343,10 @@ void FileSystem::init()
 	currentDirectory = path;
 }
 
+
+
+
+
 bool FileSystem::changeDir(char * folderPath)
 {
 	Inode *tempNode = nullptr;
@@ -352,19 +356,11 @@ bool FileSystem::changeDir(char * folderPath)
 	return true;
 }
 
-bool FileSystem::copyTarget(char * target, char * destination)
+bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 {
-
-	bool copySucceed = false;
-	
-	//Få tag i target noden och gör en kopia på den
-	Inode * targetNode = walkDir(target);
-
-	//Gå till destinationen och se till att det är en mapp
-	Inode * destinationNode = walkDir(destination);
+	bool returnValue = false;
 	if (targetNode != nullptr &&
 		destinationNode != nullptr &&
-		*destinationNode->getType() == '/' && 
 		isNameUnique(targetNode->getName(), destinationNode))
 	{
 		//Ändra parent och hdd location i target
@@ -372,30 +368,93 @@ bool FileSystem::copyTarget(char * target, char * destination)
 		int indexInDestinationArray = destinationNode->freeBlockInInode();
 		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
 		targetNode->setHDDLoc(targetNewAdressOnHDD);
-		
+
 		//Sätt target på destinationen
 		destinationNode->lockFirstAvailableBlock();
+
+		//Ta fram 10 adresser till disken
+		int * targetSubAdresses = mMemblockDevice.getFreeBlockAdresses();
+		//Loopa number of adresses i target
+		int nrOfBlocks = targetNode->getNrOfBlocks();
+		if (targetNode->getType()[0] == '/')
+		{
+			for (int i = 2; i < nrOfBlocks; i++)
+			{
+				int oldAdress = targetNode->changeBlockAdress(i, targetSubAdresses[i - 2]);
+				//Kolla alla adresser som är skrivna
+				if (targetNode->isBlockUsed(i))
+				{
+					Inode * subTarget = new Inode(mMemblockDevice.readBlock(oldAdress));
+					returnValue = copyRecursive(subTarget, targetNode);
+				}
+			}
+		}
+		else
+		{
+			Block blocks[10];
+			int counter = 0;
+			for (int i = 2; i < nrOfBlocks; i++)
+			{
+				int oldAdress = targetNode->changeBlockAdress(i, targetSubAdresses[i - 2]);
+				//Kolla alla adresser som är skrivna
+				if (targetNode->isBlockUsed(i))
+				{
+					blocks[counter++] = mMemblockDevice.readBlock(oldAdress);
+				}
+			}
+			counter = 0;
+			//Write to disk
+			for (int i = 2; i < nrOfBlocks; i++)
+			{
+				if (targetNode->isBlockUsed(i))
+				{
+					mMemblockDevice.writeBlock(targetNode->getHDDadress(i), blocks[counter++].toString());
+				}
+			}
+
+		}
+
+		delete[] targetSubAdresses;
 
 		//Skriv till disk
 		char * targetChar = targetNode->toCharArray();
 		char * destinationChar = destinationNode->toCharArray();
 		mMemblockDevice.writeBlock(targetNewAdressOnHDD, targetChar);
 		mMemblockDevice.writeBlock(destinationNode->getHDDLoc(), destinationChar);
-		
+
 		delete[] targetChar;
 		delete[] destinationChar;
 
-
-		refreshCurrentInode();
-		copySucceed = true;
+		returnValue = true;
 	}
 
-	if (targetNode != nullptr) delete targetNode;
-	if (destinationNode != nullptr) delete destinationNode;
+	if (targetNode != nullptr)
+	{
+		delete targetNode;
+		targetNode = nullptr;
+	}
+		
+	if (destinationNode != nullptr)
+	{
+		delete destinationNode;
+		targetNode = nullptr;
+	}
 	
+	return returnValue;
+}
 
+bool FileSystem::copyTarget(char * target, char * destination)
+{
+	//Få tag i target noden och gör en kopia på den
+	Inode * targetNode = walkDir(target);
+	//Gå till destinationen
+	Inode * destinationNode = walkDir(destination);
 
-	return copySucceed;
+	bool result = copyRecursive(targetNode, destinationNode);
+
+	refreshCurrentInode();
+
+	return result;
 }
 
 bool FileSystem::removeFolder(char * path)

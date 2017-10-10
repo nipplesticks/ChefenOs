@@ -91,6 +91,6 @@ private:
 
 	void init();
 
-	bool copyRecursive(char * target, char * destination);
+	bool copyRecursive(Inode * target, Inode * destination);
 };
 #endif // FILESYSTEM_H
