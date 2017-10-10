@@ -315,6 +315,13 @@ Inode* FileSystem::walkDir(char * folderPath)
 			stringIndex++;
 
 		}
+		else if (folder[stringIndex] == ".")
+		{
+			delete tempNode;
+			tempNode = new Inode(*currentInode);
+			i = 0;
+			stringIndex++;
+		}
 		else if (tempNode->isBlockUsed(i))
 		{
 			Block curBlock = mMemblockDevice.readBlock(tempNode->getHDDadress(i));
