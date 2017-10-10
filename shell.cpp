@@ -60,10 +60,6 @@ int main(void) {
 				delete[] target;
                 break;
             case 3: // create E
-				//std::cout << fs.lol();
-				// 1. Skriver create <filename>.
-				// 2. Editor öppnas
-				// 3. Skickar in filename och content
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
@@ -72,7 +68,7 @@ int main(void) {
 					std::string content;
 					std::getline(std::cin, content);
 					fs.createFile(target, content.c_str(), content.length());
-					//delete[] folderpath;
+					clearScr();
 				}
 				else
 				{
@@ -99,7 +95,10 @@ int main(void) {
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
-					fs.readImage(target);
+					if (!fs.readImage(target))
+					{
+						std::cout << "restoreImage: cannot read '" << target << "': No such file\n";
+					}
 					delete[] target;
 				}
 				else

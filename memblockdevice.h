@@ -10,6 +10,7 @@ private:
 	
 public:
     MemBlockDevice(int nrOfBlocks = 250);
+	MemBlockDevice(int nrOfBlocks, int freePointer);
     MemBlockDevice(const MemBlockDevice &other);
 
     ~MemBlockDevice();

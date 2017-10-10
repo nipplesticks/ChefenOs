@@ -1,11 +1,5 @@
 #include "filesystem.h"
-#define _CRTDBG_MAP_ALLOC
-#include<iostream>
-#include <crtdbg.h>
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
+
 FileSystem::FileSystem()
 {
 	init();
@@ -22,39 +16,57 @@ void FileSystem::formatHDD()
 	init();
 
 }
+/*	
+TODO: 
+	- Files greater than 512
+	- Relative of absolute path
+	- Unique name checking
+*/
 bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
-
-	
+	bool isCreated = false;
+	// Setup pre-node creation
 	int hddWriteIndex = currentInode->getHDDadress(currentInode->freeBlockInInode());
-
 	char* nodeType = constChartoChar("file");
+
  	Inode* fileNode = new Inode(nodeType, fileName, hddWriteIndex, currentInode->getHDDLoc());
 
+	// Obtain free block addresses for this fileNode
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-
-	for (int i = 2; i < fileNode->getNrOfBlocks(); i++)
+	for (int i = 0; i < fileNode->getNrOfBlocks() - 2; i++)
 		fileNode->setBlock(freeBlocks[i]);
 	delete[] freeBlocks;
 
-
+	// Index of first free block in fileNode to store file content
 	int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
 
-	currentInode->lockFirstAvailableBlock();
-	fileNode->lockFirstAvailableBlock();
+	// If blocks are available
+	if (currentInode->lockFirstAvailableBlock() || fileNode->lockFirstAvailableBlock())
+	{
+		char* fileNodeContent = fileNode->toCharArray();
+		char* currentNodeContent = currentInode->toCharArray();
+		char* blockContent = new char[512];
 
-	char* fileNodeContent = fileNode->toCharArray();
-	char* currentNodeContent = currentInode->toCharArray();
-	mMemblockDevice.writeBlock(freeNodewriteIndex, content);
-	mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);
-	mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentNodeContent);
+		// Just to terminate the file correctly
+		int i = 0;
+		for (; i < sizeInBytes; i++) blockContent[i] = content[i];
+		blockContent[i] = '\0';
+
+		mMemblockDevice.writeBlock(freeNodewriteIndex, blockContent); // Write filecontent to disk
+		mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);	// Write file-node to disk
+		mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentNodeContent);	//Write currentNode to disk
+
+		delete[] fileNodeContent;
+		delete[] currentNodeContent;
+		delete[] blockContent;
+
+		delete fileNode;
+		refreshCurrentInode();
 	
-	delete[] fileNodeContent;
-	delete[] currentNodeContent;
-	delete fileNode;
-	refreshCurrentInode();
-
-	return false;
+		isCreated = true;
+	}
+	
+	return isCreated;
 }
 
 /* Creates a folder entry in the current INode
@@ -82,9 +94,10 @@ bool FileSystem::createFolder(char * folderName)
 
 				char* currentFolder = stringToCharP(folderNames[arrayIndex]);
 				char* currentType = stringToCharP(std::string("/"));
+
 				Inode *newInode = new Inode(currentType, currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
 				int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-				for (int i = 2; i < newInode->getNrOfBlocks(); i++)
+				for (int i = 0; i < newInode->getNrOfBlocks() - 2; i++)
 					newInode->setBlock(freeBlocks[i]);
 				delete[] freeBlocks;
 
@@ -151,8 +164,11 @@ void FileSystem::createImage(char * folderPath)
 bool FileSystem::readImage(char * folderPath)
 {
 	auto file = std::fstream(folderPath, std::ios::in | std::ios::binary);
+	bool foundFile = false;
 	if (file.good())
 	{
+		foundFile = true;
+
 		// Calculate how many characters in file
 		file.seekg(0, std::ios::end);
 		size_t size = file.tellg();
@@ -176,13 +192,22 @@ bool FileSystem::readImage(char * folderPath)
 		// Read nrOfBlocks
 		container = readFileLine(buffer, bufferIndex);
 		int nrOfBlocks = std::stoi(container);
-
-		mMemblockDevice.reset();
-
+		char* blockContent = new char[512];
 		
-		return true;
+		mMemblockDevice.reset();
+		for (int i = 0; i < nrOfBlocks; i++)
+		{
+			for (int blockIndex = 0; blockIndex < 512;)
+				blockContent[blockIndex++] = buffer[bufferIndex++];
+			
+			mMemblockDevice.writeBlock(i, blockContent);
+		}
+		delete[] buffer;
+		delete[] blockContent;
+		refreshCurrentInode();
+		
 	}
-	return false;
+	return foundFile;
 }
 
 std::string FileSystem::lol()

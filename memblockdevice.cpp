@@ -21,8 +21,12 @@ void MemBlockDevice::init()
 
 MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks) 
 {
-
 	init();
+}
+
+MemBlockDevice::MemBlockDevice(int nrOfBlocks, int freePointer) : BlockDevice(nrOfBlocks)
+{
+	this->freePointer = freePointer;
 }
 
 MemBlockDevice::MemBlockDevice(const MemBlockDevice &other) : BlockDevice(other) {
