@@ -149,17 +149,21 @@ int * MemBlockDevice::getFreeBlockAdresses()
 	}
 	return blocks;
 }
-#include <iostream>
 std::string MemBlockDevice::toFile() const
 {
 	std::string content;
 	content += std::to_string(freePointer) + "\r\n";
 	content += std::to_string(nrOfBlocks) + "\r\n";
-	for (int i = 0; i < 13; i++)
+	for (int i = 0; i < nrOfBlocks; i++)
 	{
-	std::cout << "Block id: " << i << std::endl;
-	for (int curblock = 0; curblock < 512; curblock++)
-	content += memBlocks[i][curblock];
+		content += "Block id: " + std::to_string(i) + "\n";
+		for (int curblock = 0; curblock < 512; curblock++)
+		{
+			content += memBlocks[i][curblock];
+		}
+			
+		content += "\n";
 	}
+	
 	return content;
 }

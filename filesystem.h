@@ -87,5 +87,7 @@ private:
 	char* constChartoChar(const char* string) const;
 
 	void init();
+
+	bool copyRecursive(char * target, char * destination);
 };
 #endif // FILESYSTEM_H

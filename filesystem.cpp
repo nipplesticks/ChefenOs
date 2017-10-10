@@ -355,6 +355,7 @@ bool FileSystem::changeDir(char * folderPath)
 
 bool FileSystem::copyTarget(char * target, char * destination)
 {
+
 	bool copySucceed = false;
 	
 	//Få tag i target noden och gör en kopia på den

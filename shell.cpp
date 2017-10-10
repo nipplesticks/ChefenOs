@@ -71,6 +71,7 @@ int main(void) {
 					std::cout << "\t\t\t\t\t\tAdvanced Editor\n";
 					std::string content;
 					std::getline(std::cin, content);
+					content += '\0';
 					fs.createFile(target, content.c_str(), content.length());
 					//delete[] folderpath;
 				}
