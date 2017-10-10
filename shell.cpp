@@ -78,15 +78,13 @@ int main(void) {
 				{
 					std::cout << "createImage <folderpath>\n";
 				}
-				
+				delete[] target;
                 break;
             case 4: // cat E
-				//std::cout << fs.lol();
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
 					std::string fileContent = fs.getFileContent(target);
-					delete[] target;
 					if (fileContent != "")
 					{
 						std::cout << fileContent << std::endl;
@@ -100,6 +98,7 @@ int main(void) {
 				{
 					std::cout << "cat <filepath>" << std::endl;
 				}
+				delete[] target;
 
                 break;
             case 5: // createImage E DONE

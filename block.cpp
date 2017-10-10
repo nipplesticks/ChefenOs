@@ -92,8 +92,9 @@ void Block::writeBlock(const char cArr[]) {
 std::string Block::toString() const {
     std::string output;
     output.reserve(this->nrOfElements);
-    for (int i = 0; i < this->nrOfElements; ++i)
+	for (int i = 0; i < this->nrOfElements; ++i)
         output += this->block[i];
+	
     return output;
 }
 

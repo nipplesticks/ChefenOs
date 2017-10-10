@@ -47,7 +47,7 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 
 	if(isNameUnique(name, currentHolder))
 	{
-		Inode* fileNode = new Inode(nodeType, stringToCharP(folders[arraySize - 1]), hddWriteIndex, currentHolder->getHDDLoc());
+		Inode* fileNode = new Inode(nodeType, name, hddWriteIndex, currentHolder->getHDDLoc());
 
 		// Obtain free block addresses for this fileNode
 		int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
@@ -93,7 +93,6 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
  	
 	delete currentHolder;
 	delete[] folders;
-	delete fileName;
 
 	return isCreated;
 }
@@ -420,17 +419,21 @@ std::string FileSystem::getFileContent(char * target) const
 
 	Inode * targetFile = walkDir(target);
 
-	if (targetFile->getType()[0] != "/")
+	if (targetFile->getType()[0] != '/')
 	{
 		int nrOfBlocks = targetFile->getNrOfBlocks();
-		for (int i = 0; i < nrOfBlocks; i++)
+		for (int i = 2; i < nrOfBlocks; i++)
 		{
 			if (targetFile->isBlockUsed(i))
 			{
 				Block partOfFile = mMemblockDevice.readBlock(targetFile->getHDDadress(i));
-				returnString += partOfFile.toString();
+				for(int contentIndex = 0; (contentIndex < 512) && partOfFile.toString()[contentIndex] != '\0'; contentIndex++)
+				{ 
+					returnString += partOfFile.toString()[contentIndex];
+				}
 			}
 		}
+		returnString += '\n';
 	}
 
 	delete targetFile;
