@@ -399,15 +399,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 		destinationNode != nullptr &&
 		isNameUnique(targetNode->getName(), destinationNode))
 	{
-		//Ändra parent och hdd location i target
 		targetNode->setParentHDDLoc(destinationNode->getHDDLoc());
-		int indexInDestinationArray = destinationNode->freeBlockInInode();
-		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
-		targetNode->setHDDLoc(targetNewAdressOnHDD);
-
-		//Sätt target på destinationen
-		destinationNode->lockFirstAvailableBlock();
-
 		//Ta fram 10 adresser till disken
 		int * targetSubAdresses = mMemblockDevice.getFreeBlockAdresses();
 		//Loopa number of adresses i target
@@ -421,7 +413,8 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 				if (targetNode->isBlockUsed(i))
 				{
 					Inode * subTarget = new Inode(mMemblockDevice.readBlock(oldAdress));
-					returnValue = copyRecursive(subTarget, targetNode);
+					subTarget->setHDDLoc(targetNode->getHDDadress(i));
+					returnValue = copyRecursive(subTarget, new Inode(*targetNode));
 				}
 			}
 		}
@@ -455,7 +448,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 		//Skriv till disk
 		char * targetChar = targetNode->toCharArray();
 		char * destinationChar = destinationNode->toCharArray();
-		mMemblockDevice.writeBlock(targetNewAdressOnHDD, targetChar);
+		mMemblockDevice.writeBlock(targetNode->getHDDLoc(), targetChar);
 		mMemblockDevice.writeBlock(destinationNode->getHDDLoc(), destinationChar);
 
 		delete[] targetChar;
@@ -473,7 +466,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 	if (destinationNode != nullptr)
 	{
 		delete destinationNode;
-		targetNode = nullptr;
+		destinationNode = nullptr;
 	}
 
 	return returnValue;
@@ -481,14 +474,27 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 
 bool FileSystem::copyTarget(char * target, char * destination)
 {
+	bool result = false;
 	//Få tag i target noden och gör en kopia på den
 	Inode * targetNode = walkDir(target);
 	//Gå till destinationen
 	Inode * destinationNode = walkDir(destination);
 
-	bool result = copyRecursive(targetNode, destinationNode);
+	if (targetNode != nullptr &&
+		destinationNode != nullptr &&
+		isNameUnique(targetNode->getName(), destinationNode))
+	{
+		int indexInDestinationArray = destinationNode->freeBlockInInode();
+		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
+		targetNode->setHDDLoc(targetNewAdressOnHDD);
 
-	refreshCurrentInode();
+		//Sätt target på destinationen
+		destinationNode->lockFirstAvailableBlock();
+
+		result = copyRecursive(targetNode, destinationNode);
+
+		refreshCurrentInode();
+	}
 
 	return result;
 }
