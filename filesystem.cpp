@@ -289,7 +289,7 @@ void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
 }
 
 /* Fully working changeDir method with support for multiple slashes */
-Inode* FileSystem::walkDir(char * folderPath)
+Inode* FileSystem::walkDir(char * folderPath) const
 {
 	// Initialize variables
 	int nrOfInodeBlocks = currentInode->getNrOfBlocks();
@@ -363,7 +363,7 @@ std::string FileSystem::dirNameJumper(int index)
 	else return dirNameJumper(name.getParentHDDLoc()) + name.getName() + name.getType();
 }
 
-Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int& arraySize)
+Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int& arraySize) const
 {
 	Inode* returnNode = nullptr;
 	// Relative or absolute path?
@@ -399,6 +399,29 @@ bool FileSystem::changeDir(char * folderPath)
 	if (tempNode != nullptr) changeCurrentInode(tempNode);
 	else return false;
 	return true;
+}
+
+std::string FileSystem::getFileContent(char * target) const
+{
+	std::string returnString = "";
+
+	Inode * targetFile = walkDir(target);
+
+	if (targetFile->getType()[0] != "/")
+	{
+		int nrOfBlocks = targetFile->getNrOfBlocks();
+		for (int i = 0; i < nrOfBlocks; i++)
+		{
+			if (targetFile->isBlockUsed(i))
+			{
+				Block partOfFile = mMemblockDevice.readBlock(targetFile->getHDDadress(i));
+				returnString += partOfFile.toString();
+			}
+		}
+	}
+
+	delete targetFile;
+	return returnString;
 }
 
 bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)

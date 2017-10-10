@@ -78,7 +78,26 @@ int main(void) {
 				
                 break;
             case 4: // cat E
-				std::cout << fs.lol();
+				//std::cout << fs.lol();
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target)
+				{
+					std::string fileContent = fs.getFileContent(target);
+					delete[] target;
+					if (fileContent != "")
+					{
+						std::cout << fileContent << std::endl;
+					}
+					else
+					{
+						std::cout << target << " is a directory\n";
+					}
+				}
+				else
+				{
+					std::cout << "cat <filepath>" << std::endl;
+				}
+
                 break;
             case 5: // createImage E DONE
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
