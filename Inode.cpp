@@ -228,6 +228,7 @@ Inode & Inode::operator=(const Inode & other)
 
 void Inode::setName(char *& name)
 {
+	delete[] this->name;
 	this->name = name;
 }
 

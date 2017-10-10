@@ -487,11 +487,34 @@ bool FileSystem::copyTarget(char * target, char * destination)
 	Inode * targetNode = walkDir(target);
 	//Gå till destinationen
 	Inode * destinationNode = walkDir(destination);
-
-	if (targetNode != nullptr &&
-		destinationNode != nullptr &&
-		isNameUnique(targetNode->getName(), destinationNode))
+		
+	if (targetNode != nullptr && destinationNode != nullptr)
 	{
+		if (isNameUnique(targetNode->getName(), destinationNode));
+		{
+			char * name = constChartoChar(targetNode->getName());
+			std::string nameAsString = name;
+			int indexOfDot = nameAsString.find_last_of('.');
+			if (indexOfDot != -1)
+			{
+				std::string fileType = "";
+				int lengthOfString = nameAsString.length();
+				for (int i = indexOfDot; i < lengthOfString; i++)
+					fileType += nameAsString[i];
+				for (int i = indexOfDot; i < lengthOfString; i++)
+					nameAsString.pop_back();
+				nameAsString += "_copy" + fileType;
+			}
+			else
+			{
+				nameAsString += "_copy";
+			}
+			char * newName = stringToCharP(nameAsString);
+			targetNode->setName(newName);
+
+			//delete[] newName;
+			delete[] name;
+		}
 		int indexInDestinationArray = destinationNode->freeBlockInInode();
 		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
 		targetNode->setHDDLoc(targetNewAdressOnHDD);
