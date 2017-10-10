@@ -135,7 +135,7 @@ void MemBlockDevice::reset() {
 int MemBlockDevice::size() const {
     return this->nrOfBlocks;
 }
-
+/*Remember to delete*/
 int * MemBlockDevice::getFreeBlockAdresses() 
 {
 	int* blocks = new int[10];
@@ -165,8 +165,14 @@ std::string MemBlockDevice::toFile() const
 	content += std::to_string(nrOfBlocks) + "\r\n";
 	for (int i = 0; i < nrOfBlocks; i++)
 	{
-	for (int curblock = 0; curblock < 512; curblock++)
-	content += memBlocks[i][curblock];
+		content += "Block id: " + std::to_string(i) + "\n";
+		for (int curblock = 0; curblock < 512; curblock++)
+		{
+			content += memBlocks[i][curblock];
+		}
+			
+		content += "\n";
 	}
+	
 	return content;
 }

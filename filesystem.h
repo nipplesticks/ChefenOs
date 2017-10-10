@@ -90,5 +90,7 @@ private:
 	std::string readFileLine(char* buffer, int& bufferIndex);
 
 	void init();
+
+	bool copyRecursive(Inode * target, Inode * destination);
 };
 #endif // FILESYSTEM_H

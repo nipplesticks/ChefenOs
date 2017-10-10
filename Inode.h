@@ -30,6 +30,8 @@ public:
 	void setName(char *&name);
 	void setParentHDDLoc(int adress);
 	void setHDDLoc(int adress);
+	/*Returns old adress*/
+	int changeBlockAdress(int index, int newAdress);
 
 	int getHDDLoc() const;
 	int getParentHDDLoc() const;
