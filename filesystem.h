@@ -57,6 +57,7 @@ public:
 	
 	//Global removal
 	
+	std::string getFileContent(char * target) const;
 
 private:
 	// Help functions
@@ -72,12 +73,12 @@ private:
 	void changeCurrentInode(Inode* newCur);
 	
 	/* Returns the Inode associated with given folderpath */
-	Inode* walkDir(char* folderPath);
+	Inode* walkDir(char* folderPath) const;
 
 	std::string dirNameJumper(int index);
 
 	/* Determines if the path is absolute or relative and stores each dir in string* */
-	Inode* pathSolver(char* folderName, std::string*& folderNames, int& arraySize);
+	Inode* pathSolver(char* folderName, std::string*& folderNames, int& arraySize) const;
 
 	/* Splits a char* into strings based on '/' */
 	std::string* seperateSlashes(char* filepath, int& size) const;

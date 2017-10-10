@@ -302,7 +302,7 @@ void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
 }
 
 /* Fully working changeDir method with support for multiple slashes */
-Inode* FileSystem::walkDir(char * folderPath)
+Inode* FileSystem::walkDir(char * folderPath) const
 {
 	// Initialize variables
 	int nrOfInodeBlocks = currentInode->getNrOfBlocks();
@@ -327,6 +327,13 @@ Inode* FileSystem::walkDir(char * folderPath)
 			i = 0;
 			stringIndex++;
 
+		}
+		else if (folder[stringIndex] == ".")
+		{
+			delete tempNode;
+			tempNode = new Inode(*currentInode);
+			i = 0;
+			stringIndex++;
 		}
 		else if (tempNode->isBlockUsed(i))
 		{
@@ -369,7 +376,7 @@ std::string FileSystem::dirNameJumper(int index)
 	else return dirNameJumper(name.getParentHDDLoc()) + name.getName() + name.getType();
 }
 
-Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int& arraySize)
+Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int& arraySize) const
 {
 	Inode* returnNode = nullptr;
 	// Relative or absolute path?
@@ -405,6 +412,29 @@ bool FileSystem::changeDir(char * folderPath)
 	if (tempNode != nullptr) changeCurrentInode(tempNode);
 	else return false;
 	return true;
+}
+
+std::string FileSystem::getFileContent(char * target) const
+{
+	std::string returnString = "";
+
+	Inode * targetFile = walkDir(target);
+
+	if (targetFile->getType()[0] != "/")
+	{
+		int nrOfBlocks = targetFile->getNrOfBlocks();
+		for (int i = 0; i < nrOfBlocks; i++)
+		{
+			if (targetFile->isBlockUsed(i))
+			{
+				Block partOfFile = mMemblockDevice.readBlock(targetFile->getHDDadress(i));
+				returnString += partOfFile.toString();
+			}
+		}
+	}
+
+	delete targetFile;
+	return returnString;
 }
 
 bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
@@ -494,11 +524,34 @@ bool FileSystem::copyTarget(char * target, char * destination)
 	Inode * targetNode = walkDir(target);
 	//Gå till destinationen
 	Inode * destinationNode = walkDir(destination);
-
-	if (targetNode != nullptr &&
-		destinationNode != nullptr &&
-		isNameUnique(targetNode->getName(), destinationNode))
+		
+	if (targetNode != nullptr && destinationNode != nullptr)
 	{
+		if (isNameUnique(targetNode->getName(), destinationNode));
+		{
+			char * name = constChartoChar(targetNode->getName());
+			std::string nameAsString = name;
+			int indexOfDot = nameAsString.find_last_of('.');
+			if (indexOfDot != -1)
+			{
+				std::string fileType = "";
+				int lengthOfString = nameAsString.length();
+				for (int i = indexOfDot; i < lengthOfString; i++)
+					fileType += nameAsString[i];
+				for (int i = indexOfDot; i < lengthOfString; i++)
+					nameAsString.pop_back();
+				nameAsString += "_copy" + fileType;
+			}
+			else
+			{
+				nameAsString += "_copy";
+			}
+			char * newName = stringToCharP(nameAsString);
+			targetNode->setName(newName);
+
+			//delete[] newName;
+			delete[] name;
+		}
 		int indexInDestinationArray = destinationNode->freeBlockInInode();
 		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
 		targetNode->setHDDLoc(targetNewAdressOnHDD);

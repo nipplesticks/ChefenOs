@@ -35,7 +35,7 @@ int main(void) {
 	char * destination = nullptr;
 	std::string content;
     do {
-        std::cout << user << ":" << fs.pwd() << "$ ";
+        std::cout << user << ":" << fs.pwd() << "\n$ ";
 		getline(std::cin, userCommand);
 
         int nrOfCommands = parseCommandString(userCommand, commandArr);
@@ -44,13 +44,13 @@ int main(void) {
             int cIndex = findCommand(commandArr[0]);
             switch(cIndex) {
 
-			case 0: //quit E
+			case 0: //quit E DONE
 				bRun = quit();                
                 break;
-            case 1: // format E
+            case 1: // format E DONE
 				fs.formatHDD();
                 break;
-            case 2: // ls E
+            case 2: // ls E DONE
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (fs.listCopy(target, content))
 					std::cout << content << std::endl;
@@ -81,9 +81,28 @@ int main(void) {
 				
                 break;
             case 4: // cat E
-				std::cout << fs.lol();
+				//std::cout << fs.lol();
+				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+				if (target)
+				{
+					std::string fileContent = fs.getFileContent(target);
+					delete[] target;
+					if (fileContent != "")
+					{
+						std::cout << fileContent << std::endl;
+					}
+					else
+					{
+						std::cout << target << " is a directory\n";
+					}
+				}
+				else
+				{
+					std::cout << "cat <filepath>" << std::endl;
+				}
+
                 break;
-            case 5: // createImage E
+            case 5: // createImage E DONE
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
@@ -95,7 +114,7 @@ int main(void) {
 					std::cout << "createImage <folderpath>\n";
 				}
                 break;
-            case 6: // restoreImage E
+            case 6: // restoreImage E DONE
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
@@ -125,7 +144,7 @@ int main(void) {
 					std::cout << "rm <path>\n";
 				}
                 break;
-            case 8: // cp E
+            case 8: // cp E DONE
 				target = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
 				destination = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
 				if (target && destination)
@@ -146,7 +165,7 @@ int main(void) {
                 break;
             case 10: // mv
                 break;
-            case 11: // mkdir E				
+            case 11: // mkdir E	DONE		
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target != nullptr)
 				{
@@ -160,7 +179,7 @@ int main(void) {
 				}
 				
                 break;
-            case 12: // cd E
+            case 12: // cd E DONE
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target != nullptr)
 				{
@@ -174,13 +193,13 @@ int main(void) {
 					std::cout << "cd <filepath>" << std::endl;
 				}
                 break; 
-            case 13: // pwd E
+            case 13: // pwd E DONE
 				std::cout << fs.pwd() << std::endl;
                 break;
-            case 14: // help
+            case 14: // help DONE
                 std::cout << help() << std::endl;
                 break;
-			case 15: // clear
+			case 15: // clear DONE
 				clearScr();
 				break;
             default:
