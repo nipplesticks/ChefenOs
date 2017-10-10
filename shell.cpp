@@ -1,4 +1,4 @@
-
+﻿
 #include <iostream>
 #include <sstream>
 #include<string>
@@ -18,6 +18,8 @@ int findCommand(std::string &command);
 bool quit();
 char* getCommandsAsChar(const std::string &command, int expectedCommands, int nrOfCommands);
 void clearScr();
+
+std::string advancedEditor();
 
 std::string help();
 
@@ -63,12 +65,36 @@ int main(void) {
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
+					/*
 					clearScr();
 					std::cout << "\t\t\t\t\t\tAdvanced Editor\n";
 					std::string content;
 					std::getline(std::cin, content);
 					content += '\0';
 					clearScr();
+					*/
+
+					/*Wow! Such advanced! Much wow!
+					─────────▄──────────────▄
+						────────▌▒█───────────▄▀▒▌
+						────────▌▒▒▀▄───────▄▀▒▒▒▐
+						───────▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐
+						─────▄▄▀▒▒▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐
+						───▄▀▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀██▀▒▌
+						──▐▒▒▒▄▄▄▒▒▒▒▒▒▒▒▒▒▒▒▒▀▄▒▒▌
+						──▌▒▒▐▄█▀▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐
+						─▐▒▒▒▒▒▒▒▒▒▒▒▌██▀▒▒▒▒▒▒▒▒▀▄▌
+						─▌▒▀▄██▄▒▒▒▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
+						─▌▀▐▄█▄█▌▄▒▀▒▒▒▒▒▒░░░░░░▒▒▒▐
+						▐▒▀▐▀▐▀▒▒▄▄▒▄▒▒▒▒▒░░░░░░▒▒▒▒▌
+						▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒░░░░░░▒▒▒▐
+						─▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
+						─▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▐
+						──▀▄▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▄▒▒▒▒▌
+						────▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀
+						───▐▀▒▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀
+						──▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀▀*/
+					std::string content = advancedEditor();
 					if (!fs.createFile(target, content.c_str(), content.length()))
 					{
 						std::cout << "create: cannot write file '" << target << "': File already exist\n";
@@ -211,7 +237,7 @@ int main(void) {
 }
 void clearScr()
 {
-	if (system("clear")) system("cls"); // Funkar b�de p� windows och linux
+	if (system("clear")) system("cls"); // Funkar både på windows och linux
 }
 int parseCommandString(const std::string &userCommand, std::string strArr[]) {
     std::stringstream ssin(userCommand);
@@ -278,3 +304,31 @@ std::string help() {
 }
 
 /* Insert code for your shell functions and call them from the switch-case */
+
+bool endCommandFound(const std::string &str)
+{
+	return str[str.length() - 4] == '!' && str[str.length() - 3] == 'q' && str[str.length() - 2] == 'q';
+}
+
+std::string advancedEditor()
+{
+	std::string content = "";
+	std::string adder = "";
+
+	while (content.length() < 3 || !endCommandFound(content))
+	{
+		clearScr();
+		std::cout << "\t\t\t\t\tAdvanced Editor - write !qq to save and exit\n";
+		std::cout << content;
+		std::getline(std::cin, adder);
+		content += adder;
+		content += '\n';
+		
+	}
+
+	for (int i = 0; i < 4; i++)
+		content.pop_back();
+
+	content += '\0';
+	return content;
+}
