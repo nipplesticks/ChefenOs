@@ -28,11 +28,13 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 	std::string* folders;
 	Inode * temp = pathSolver(fileName, folders, arraySize);
 	delete temp;
+
 	std::string filePathBeforeFile;
 	for (int i = 0; i < arraySize - 1; i++)
 	{
 		filePathBeforeFile += "/" + folders[i];
 	}
+
 	char* fpbf_p = stringToCharP(filePathBeforeFile);
 	Inode* currentHolder = walkDir(fpbf_p);
 	delete[] fpbf_p;
@@ -41,47 +43,58 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 	// Setup pre-node creation
 	int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode());
 	char* nodeType = constChartoChar("file");
+	char* name = stringToCharP(folders[arraySize - 1]);
 
- 	Inode* fileNode = new Inode(nodeType, stringToCharP(folders[arraySize - 1]), hddWriteIndex, currentHolder->getHDDLoc());
-
-	// Obtain free block addresses for this fileNode
-	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
-
-	for (int i = 0; i < fileNode->getNrOfBlocks() - 2; i++)
-		fileNode->setBlock(freeBlocks[i]);
-	delete[] freeBlocks;
-
-	// Index of first free block in fileNode to store file content
-	int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
-
-	// If blocks are available
-	if (currentHolder->lockFirstAvailableBlock() && fileNode->lockFirstAvailableBlock())
+	if(isNameUnique(name, currentHolder))
 	{
-		char* fileNodeContent = fileNode->toCharArray();
-		char* currentNodeContent = currentHolder->toCharArray();
-		char* blockContent = new char[512];
+		Inode* fileNode = new Inode(nodeType, stringToCharP(folders[arraySize - 1]), hddWriteIndex, currentHolder->getHDDLoc());
 
-		// Just to terminate the file correctly
-		int i = 0;
-		for (; i < sizeInBytes; i++) blockContent[i] = content[i];
-		blockContent[i] = '\0';
+		// Obtain free block addresses for this fileNode
+		int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
 
-		mMemblockDevice.writeBlock(freeNodewriteIndex, blockContent); // Write filecontent to disk
-		mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);	// Write file-node to disk
-		mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currentNodeContent);	//Write currentNode to disk
+		for (int i = 0; i < fileNode->getNrOfBlocks() - 2; i++)
+			fileNode->setBlock(freeBlocks[i]);
+		delete[] freeBlocks;
 
-		delete[] fileNodeContent;
-		delete[] currentNodeContent;
-		delete[] blockContent;
+		// Index of first free block in fileNode to store file content
+		int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
 
-		refreshCurrentInode();
-	
-		isCreated = true;
+		// If blocks are available
+		if (currentHolder->lockFirstAvailableBlock() && fileNode->lockFirstAvailableBlock())
+		{
+			char* fileNodeContent = fileNode->toCharArray();
+			char* currentNodeContent = currentHolder->toCharArray();
+			char* blockContent = new char[512];
+
+			// Just to terminate the file correctly
+			int i = 0;
+			for (; i < sizeInBytes; i++) blockContent[i] = content[i];
+			blockContent[i] = '\0';
+
+			mMemblockDevice.writeBlock(freeNodewriteIndex, blockContent); // Write filecontent to disk
+			mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);	// Write file-node to disk
+			mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currentNodeContent);	//Write currentNode to disk
+
+			delete[] fileNodeContent;
+			delete[] currentNodeContent;
+			delete[] blockContent;
+
+			refreshCurrentInode();
+
+			isCreated = true;
+		}
+		delete fileNode;
 	}
+	else
+	{
+		delete[] nodeType;
+		delete[] name;
+	}
+ 	
 	delete currentHolder;
-	delete fileNode;
 	delete[] folders;
 	delete fileName;
+
 	return isCreated;
 }
 

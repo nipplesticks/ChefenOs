@@ -68,8 +68,11 @@ int main(void) {
 					std::string content;
 					std::getline(std::cin, content);
 					content += '\0';
-					fs.createFile(target, content.c_str(), content.length());
 					clearScr();
+					if (!fs.createFile(target, content.c_str(), content.length()))
+					{
+						std::cout << "create: cannot write file '" << target << "': File already exist\n";
+					}
 				}
 				else
 				{
