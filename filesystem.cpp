@@ -26,19 +26,28 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 {
 
 	// Check path
-	std::string *folderNames = nullptr;
-	int arraySize = 0, arrayIndex = 0;
-
-	Inode* currentHolder = pathSolver(fileName, folderNames, arraySize);
-
-
+	// 1. filename kan vara /hejsan/tjena.txt
+	// 2. Då ska vi gå till hejsan
+	// 3. Vi ska nu skapa en fil som heter tjena.txt
+	int arraySize = 0;
+	std::string* folders;
+	Inode * temp = pathSolver(fileName, folders, arraySize);
+	delete temp;
+	std::string filePathBeforeFile;
+	for (int i = 0; i < arraySize - 1; i++)
+	{
+		filePathBeforeFile += "/" + folders[i];
+	}
+	char* fpbf_p = stringToCharP(filePathBeforeFile);
+	Inode* currentHolder = walkDir(fpbf_p);
+	delete[] fpbf_p;
 
 	bool isCreated = false;
 	// Setup pre-node creation
-	int hddWriteIndex = currentInode->getHDDadress(currentInode->freeBlockInInode());
+	int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode());
 	char* nodeType = constChartoChar("file");
 
- 	Inode* fileNode = new Inode(nodeType, fileName, hddWriteIndex, currentInode->getHDDLoc());
+ 	Inode* fileNode = new Inode(nodeType, stringToCharP(folders[arraySize - 1]), hddWriteIndex, currentHolder->getHDDLoc());
 
 	// Obtain free block addresses for this fileNode
 	int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
@@ -51,10 +60,10 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 	int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
 
 	// If blocks are available
-	if (currentInode->lockFirstAvailableBlock() && fileNode->lockFirstAvailableBlock())
+	if (currentHolder->lockFirstAvailableBlock() && fileNode->lockFirstAvailableBlock())
 	{
 		char* fileNodeContent = fileNode->toCharArray();
-		char* currentNodeContent = currentInode->toCharArray();
+		char* currentNodeContent = currentHolder->toCharArray();
 		char* blockContent = new char[512];
 
 		// Just to terminate the file correctly
@@ -64,18 +73,20 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 
 		mMemblockDevice.writeBlock(freeNodewriteIndex, blockContent); // Write filecontent to disk
 		mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);	// Write file-node to disk
-		mMemblockDevice.writeBlock(currentInode->getHDDLoc(), currentNodeContent);	//Write currentNode to disk
+		mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currentNodeContent);	//Write currentNode to disk
 
 		delete[] fileNodeContent;
 		delete[] currentNodeContent;
 		delete[] blockContent;
 
-		delete fileNode;
 		refreshCurrentInode();
 	
 		isCreated = true;
 	}
-	
+	delete currentHolder;
+	delete fileNode;
+	delete[] folders;
+	delete fileName;
 	return isCreated;
 }
 
@@ -171,6 +182,7 @@ void FileSystem::createImage(char * folderPath)
 	}
 	
 }
+
 bool FileSystem::readImage(char * folderPath)
 {
 	auto file = std::fstream(folderPath, std::ios::in | std::ios::binary);
@@ -269,6 +281,7 @@ std::string FileSystem::pwd()
 {
 	return dirNameJumper(currentInode->getHDDLoc());
 }
+
 /* Return current I-Node name+type*/
 std::string FileSystem::currentDir() const
 {
@@ -386,7 +399,6 @@ bool FileSystem::changeDir(char * folderPath)
 	else return false;
 	return true;
 }
-
 
 bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 {
@@ -516,6 +528,7 @@ bool FileSystem::removeFolder(char * path)
 	
 	return removed;
 }
+
 /* Compares all the names in the current Inode
 Return false if name found */
 bool FileSystem::isNameUnique(const char * name, const Inode* inode) const
