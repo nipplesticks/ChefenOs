@@ -315,11 +315,11 @@ std::string advancedEditor()
 	std::string content = "";
 	std::string adder = "";
 
+	clearScr();
+	std::cout << "\t\t\t\t\tAdvanced Editor - write !wq to save and exit\n";
+	std::cout << content;
 	while (content.length() < 3 || !endCommandFound(content))
 	{
-		clearScr();
-		std::cout << "\t\t\t\t\tAdvanced Editor - write !wq to save and exit\n";
-		std::cout << content;
 		std::getline(std::cin, adder);
 		content += adder;
 		content += '\n';
