@@ -1,4 +1,4 @@
-#include "filesystem.h"
+﻿#include "filesystem.h"
 
 FileSystem::FileSystem()
 {
@@ -413,6 +413,38 @@ bool FileSystem::changeDir(char * folderPath)
 	return true;
 }
 
+std::string FileSystem::toTreeFormat() const
+{
+	/*
+	.
+	├── a/
+	│	├─ hejsan.txt
+	│	└─ enFil.txt
+	└── b/
+	2 directories, 2 files
+	*/
+	std::string returnString = "/\n";
+	int width = 0;
+	int undone = 0;
+	int* counter = new int[2];
+	counter[0] = 0;
+	counter[1] = 0;
+	traverseDirectory(currentInode, width,undone,false, returnString,counter);
+	returnString += "\n";
+	if (counter[0] > 1)
+		returnString += std::to_string(counter[0]) + " directories, ";
+	else
+		returnString += std::to_string(counter[0]) + " directory, ";
+
+	if (counter[1] > 1)
+		returnString += std::to_string(counter[1]) + " files";
+	else
+		returnString += std::to_string(counter[1]) + " file";
+
+	delete[] counter;
+	return returnString;
+}
+
 std::string FileSystem::getFileContent(char * target) const
 {
 	std::string returnString = "";
@@ -457,7 +489,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 			for (int i = 2; i < nrOfBlocks; i++)
 			{
 				int oldAdress = targetNode->changeBlockAdress(i, targetSubAdresses[i - 2]);
-				//Kolla alla adresser som �r skrivna
+				//Kolla alla adresser som är skrivna
 				if (targetNode->isBlockUsed(i))
 				{
 					Inode * subTarget = new Inode(mMemblockDevice.readBlock(oldAdress));
@@ -473,7 +505,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 			for (int i = 2; i < nrOfBlocks; i++)
 			{
 				int oldAdress = targetNode->changeBlockAdress(i, targetSubAdresses[i - 2]);
-				//Kolla alla adresser som �r skrivna
+				//Kolla alla adresser som är skrivna
 				if (targetNode->isBlockUsed(i))
 				{
 					blocks[counter++] = mMemblockDevice.readBlock(oldAdress);
@@ -523,9 +555,9 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 bool FileSystem::copyTarget(char * target, char * destination)
 {
 	bool result = false;
-	//F� tag i target noden och g�r en kopia p� den
+	//Få tag i target noden och gör en kopia på den
 	Inode * targetNode = walkDir(target);
-	//G� till destinationen
+	//Gå till destinationen
 	Inode * destinationNode = walkDir(destination);
 		
 	if (targetNode != nullptr && destinationNode != nullptr)
@@ -559,7 +591,7 @@ bool FileSystem::copyTarget(char * target, char * destination)
 		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
 		targetNode->setHDDLoc(targetNewAdressOnHDD);
 
-		//S�tt target p� destinationen
+		//Sätt target på destinationen
 		destinationNode->lockFirstAvailableBlock();
 
 		result = copyRecursive(targetNode, destinationNode);
@@ -722,6 +754,81 @@ std::string FileSystem::readFileLine(char * buffer, int & bufferIndex)
 	}
 	bufferIndex += 2; // Jump over /r/n
 	return line;
+}
+
+void FileSystem::traverseDirectory(Inode * current, int & width, int& undone,bool last, std::string & content, int*& counter) const
+{
+	// Calculate how many entries in the map
+	int nrOfUsed = 0, nrOfBlocks = current->getNrOfBlocks();
+	for (int i = 2; i < nrOfBlocks; i++)
+		if (current->isBlockUsed(i)) nrOfUsed++;
+
+	for (int i = 2; i < nrOfBlocks && nrOfUsed != 0; i++)
+	{
+		if (current->isBlockUsed(i))
+		{
+			// To read the name
+			Block curBlock = mMemblockDevice.readBlock(current->getHDDadress(i));
+			Inode* tempNode = new Inode(curBlock);
+			if (nrOfUsed != 1) // This isnt the last entry
+			{
+				/*if (width)	content += "|   ";*/
+				for (int k = 0; k < undone; k++)
+				{
+
+						content += "|   ";
+				}
+				for(int i = 0; i < (width- undone);i++)
+					content += "    ";
+				content += "+-- ";
+				content += tempNode->getName();	
+				if(!strcmp(tempNode->getType(), "/") && !last) 
+					undone++;
+			}
+			else // Its the last entry
+			{
+				for (int i = 0; i < undone; i++)
+				{
+					content += "|   ";
+				}
+				for(int i = 0; i < (width - undone); i++)
+					content += "    ";
+				
+				/*if(width) content += "|   ";
+				for (int k = 0; k < width; k++)
+				{
+					if(width > undone)
+						content += "    ";	
+					else
+						content += "|   ";
+				}*/
+				content += "`-- ";
+				content += tempNode->getName();
+				
+				last = true;
+			}
+
+			if (!strcmp(tempNode->getType(), "/")) // If its a directory
+			{
+				counter[0]++;
+				content += "/\n";
+				width++; // Increase width of the tree as we enter a folder
+				traverseDirectory(tempNode, width, undone,last, content, counter);
+				if (width == undone) undone--;
+				width--; // Decrease widht of the tree as we leave a folder
+			}
+			else
+			{
+				counter[1]++;
+				content += "\n";
+			}
+			nrOfUsed--;
+			delete tempNode;
+
+		}
+	}
+	//undone--;
+
 }
 
 char * FileSystem::stringToCharP(const std::string& string) const

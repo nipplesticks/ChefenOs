@@ -54,7 +54,9 @@ public:
 	void setCurrentDirStr(const std::string& str, bool remove);
 
 	bool changeDir(char* folderPath);
-	
+
+	std::string toTreeFormat() const;
+
 	//Global removal
 	
 	std::string getFileContent(char * target) const;
@@ -91,6 +93,8 @@ private:
 	char* constChartoChar(const char* string) const;
 
 	std::string readFileLine(char* buffer, int& bufferIndex);
+
+	void traverseDirectory(Inode* current, int& width, int& undone,bool last, std::string& content,int*& counter) const;
 
 	void init();
 

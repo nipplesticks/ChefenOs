@@ -5,11 +5,11 @@
 #include "filesystem.h"
 
 const int MAXCOMMANDS = 8;
-const int NUMAVAILABLECOMMANDS = 16;
+const int NUMAVAILABLECOMMANDS = 17;
 
 std::string availableCommands[NUMAVAILABLECOMMANDS] = {
     "quit","format","ls","create","cat","createImage","restoreImage",
-    "rm","cp","append","mv","mkdir","cd","pwd","help","clear"
+    "rm","cp","append","mv","mkdir","cd","pwd","help","clear", "tree"
 };
 
 /* Takes usercommand from input and returns number of commands, commands are stored in strArr[] */
@@ -227,6 +227,9 @@ int main(void) {
 			case 15: // clear DONE
 				clearScr();
 				break;
+			case 16: // tree
+				std::cout << fs.toTreeFormat() << std::endl;
+				break;
             default:
                 std::cout << "Unknown command: " << commandArr[0] << std::endl;
             }
@@ -323,7 +326,6 @@ std::string advancedEditor()
 		std::getline(std::cin, adder);
 		content += adder;
 		content += '\n';
-		
 	}
 
 	for (int i = 0; i < 4; i++)
