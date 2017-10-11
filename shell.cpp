@@ -75,7 +75,7 @@ int main(void) {
 					*/
 
 					/*Wow! Such advanced! Much wow!
-					─────────▄──────────────▄
+					    ─────────▄──────────────▄
 						────────▌▒█───────────▄▀▒▌
 						────────▌▒▒▀▄───────▄▀▒▒▒▐
 						───────▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐
@@ -307,7 +307,7 @@ std::string help() {
 
 bool endCommandFound(const std::string &str)
 {
-	return str[str.length() - 4] == '!' && str[str.length() - 3] == 'q' && str[str.length() - 2] == 'q';
+	return str[str.length() - 4] == '!' && str[str.length() - 3] == 'w' && str[str.length() - 2] == 'q';
 }
 
 std::string advancedEditor()
@@ -318,7 +318,7 @@ std::string advancedEditor()
 	while (content.length() < 3 || !endCommandFound(content))
 	{
 		clearScr();
-		std::cout << "\t\t\t\t\tAdvanced Editor - write !qq to save and exit\n";
+		std::cout << "\t\t\t\t\tAdvanced Editor - write !wq to save and exit\n";
 		std::cout << content;
 		std::getline(std::cin, adder);
 		content += adder;
@@ -330,5 +330,6 @@ std::string advancedEditor()
 		content.pop_back();
 
 	content += '\0';
+	clearScr();
 	return content;
 }
