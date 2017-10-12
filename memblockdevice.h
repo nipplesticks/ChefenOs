@@ -45,20 +45,18 @@ public:
 
     /* Return the size */
     int size() const;
-	
-	/*Remember to delete SHOULD NOT USE*/
-//	int* getFreeBlockAdresses();
 
 	/* Return freeblockadresses - linkedList */
-	int* getFreeBlockAdresses2();
+	int* get10FreeBlockAdresses();
 
 	char* constChartoChar(const char * string) const;
-	std::string toFile() const;
+	std::string toFile();
 
 	Block* getPtrOfBlock(int index);
 
 	IntNode* buildList(int nrOfBlocks = 250);
-	void copyList(IntNode* head);
+	void copyList(IntNode * source, IntNode*& destination);
+	int* getAllFreeBlocks(int& size);
 	int getFreeHDDIndex();
 };
 

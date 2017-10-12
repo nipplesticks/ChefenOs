@@ -33,7 +33,7 @@ MemBlockDevice& MemBlockDevice::operator=(const MemBlockDevice &other) {
     delete [] this->memBlocks;
     this->nrOfBlocks = other.nrOfBlocks;
     this->memBlocks = new Block[this->nrOfBlocks];
-	copyList(other.headNode);
+	copyList(other.headNode, headNode);
     for (int i = 0; i < this->nrOfBlocks; ++i)
         this->memBlocks[i] = other.memBlocks[i];
 
@@ -122,19 +122,8 @@ void MemBlockDevice::reset() {
 int MemBlockDevice::size() const {
     return this->nrOfBlocks;
 }
-/*Remember to delete SHOULD NOT USE*/
-//int * MemBlockDevice::getFreeBlockAdresses() 
-//{
-//	int* blocks = new int[10];
-//	// Gives 12 free blocks
-//	for (unsigned i = 0; i < 10; i++)
-//	{
-//		//blocks[i] = freePointer++;
-//	}
-//	return blocks;
-//}
 
-int * MemBlockDevice::getFreeBlockAdresses2()
+int * MemBlockDevice::get10FreeBlockAdresses()
 {
 	int* blocks = new int[10];
 	for (int i = 0; i < 10; i++)
@@ -154,11 +143,11 @@ char * MemBlockDevice::constChartoChar(const char * string) const
 
 	return returnChar;
 }
-// NEED TO FIX
-std::string MemBlockDevice::toFile() const
+
+std::string MemBlockDevice::toFile()
 {
 	std::string content;
-	//content += std::to_string(freePointer) + "\r\n";
+	
 	content += std::to_string(nrOfBlocks) + "\r\n";
 	for (int i = 0; i < nrOfBlocks; i++)
 	{
@@ -167,6 +156,14 @@ std::string MemBlockDevice::toFile() const
 			content += memBlocks[i][curblock];
 		}		
 	}
+	int size = 0;
+	int* freeBlocks = getAllFreeBlocks(size);
+	for (int i = 0; i < size; i++)
+	{
+		content += std::to_string(freeBlocks[i]) + " ";
+	}
+
+	delete[] freeBlocks;
 	return content;
 }
 
@@ -188,14 +185,21 @@ MemBlockDevice::IntNode * MemBlockDevice::buildList(int nrOfBlocks)
 	return head;
 }
 
-void MemBlockDevice::copyList(IntNode * head)
+void MemBlockDevice::copyList(IntNode* source, IntNode*& destination)
 {
-	// Clears this->headNode
-	while (getFreeHDDIndex() != -1);
+	// Clears the destination node
+	IntNode** destPointer = &destination;
+	while (*destPointer)
+	{
+		IntNode* deletedNode = *destPointer;
+		*destPointer = deletedNode->m_NextNode;
+		deletedNode->m_NextNode = nullptr;
+		delete deletedNode;
+	}
 	
-	int array1[250], counter = 0;
 	// Reads all the values from argument head and stores them in array
-	IntNode** doublePointer = &head;
+	int array1[250], counter = 0;
+	IntNode** doublePointer = &source;
 	while (*doublePointer)
 	{
 		array1[counter++] = (*doublePointer)->m_Index;
@@ -204,9 +208,39 @@ void MemBlockDevice::copyList(IntNode * head)
 	// Transfer values backwards into this->headNode
 	for (int i = nrOfBlocks; i >= 0; i--)
 	{
-		IntNode* newNode = new IntNode(headNode, array1[i]);
-		headNode = newNode;
+		IntNode* newNode = new IntNode(destination, array1[i]);
+		destination = newNode;
 	}
+}
+
+int * MemBlockDevice::getAllFreeBlocks(int & size)
+{
+	IntNode* temp = nullptr;
+	copyList(headNode, temp); // Copies the entire list into temp
+	
+	int* adresses = new int[nrOfBlocks];
+	
+	int value = 0;
+	int i = 0;
+	for (; i < nrOfBlocks && value != -1; i++)
+	{
+		value = getFreeHDDIndex();
+		adresses[i] = value;
+	}
+	size = i-1;
+	copyList(temp, headNode);
+
+	IntNode** doublePointer = &temp;
+	while (*doublePointer)
+	{
+
+		IntNode* deletedNode = *doublePointer;
+		*doublePointer = deletedNode->m_NextNode;
+		deletedNode->m_NextNode = nullptr;
+		delete deletedNode;
+	
+	}
+	return adresses;
 }
 
 int MemBlockDevice::getFreeHDDIndex()

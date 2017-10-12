@@ -39,8 +39,6 @@ public:
 	void createImage(char* folderPath);
 
 	bool readImage(char* folderPath);
-    /* Function will move the current location to a specified location in the filesystem */
-    // goToFolder(...);
 
     /* This function will get all the files and folders in the specified folder */
 	bool listCopy(char* filepath, std::string& holder);

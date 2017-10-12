@@ -50,11 +50,11 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 		Inode* fileNode = new Inode(nodeType, name, hddWriteIndex, currentHolder->getHDDLoc());
 
 		// Obtain free block addresses for this fileNode
-		int* freeBlocks = mMemblockDevice.getFreeBlockAdresses2();
+		//int* freeBlocks = mMemblockDevice.getFreeBlockAdresses2();
 
 		for (int i = 0; i < fileNode->getNrOfBlocks() - 2; i++)
-			fileNode->setBlock(freeBlocks[i]);
-		delete[] freeBlocks;
+			fileNode->setBlock(mMemblockDevice.getFreeHDDIndex());
+		//delete[] freeBlocks;
 
 		// Index of first free block in fileNode to store file content
 		int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
@@ -124,10 +124,10 @@ bool FileSystem::createFolder(char * folderName)
 				char* currentType = stringToCharP(std::string("/"));
 
 				Inode *newInode = new Inode(currentType, currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
-				int* freeBlocks = mMemblockDevice.getFreeBlockAdresses2();
+				//int* freeBlocks = mMemblockDevice.getFreeBlockAdresses2();
 				for (int i = 0; i < newInode->getNrOfBlocks() - 2; i++)
-					newInode->setBlock(freeBlocks[i]);
-				delete[] freeBlocks;
+					newInode->setBlock(mMemblockDevice.getFreeHDDIndex());
+				//delete[] freeBlocks;
 
 				if (currentHolder->lockFirstAvailableBlock())
 				{
@@ -215,9 +215,6 @@ bool FileSystem::readImage(char * folderPath)
 		// Position in file
 		int bufferIndex = 0;
 		std::string container;
-		// Read free Pointer
-		container = readFileLine(buffer, bufferIndex);
-		int freePointer = std::stoi(container);
 		// Read nrOfBlocks
 		container = readFileLine(buffer, bufferIndex);
 		int nrOfBlocks = std::stoi(container);
@@ -477,7 +474,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 	{
 		targetNode->setParentHDDLoc(destinationNode->getHDDLoc());
 		//Ta fram 10 adresser till disken
-		int * targetSubAdresses = mMemblockDevice.getFreeBlockAdresses2();
+		int * targetSubAdresses = mMemblockDevice.get10FreeBlockAdresses();
 		//Loopa number of adresses i target
 		int nrOfBlocks = targetNode->getNrOfBlocks();
 		if (targetNode->getType()[0] == '/')
