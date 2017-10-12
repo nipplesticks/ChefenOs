@@ -91,6 +91,7 @@ private:
 	char* constChartoChar(const char* string) const;
 
 	std::string readFileLine(char* buffer, int& bufferIndex);
+	std::string readString(char* buffer, int& bufferIndex);
 
 	void traverseDirectory(Inode* current, int& width, int& undone,bool last, std::string& content,int*& counter) const;
 
@@ -98,6 +99,6 @@ private:
 
 	bool copyRecursive(Inode * target, Inode * destination);
 
-	void initLinkedList();
+	
 };
 #endif // FILESYSTEM_H

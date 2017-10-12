@@ -14,12 +14,10 @@ MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks)
 	init();
 }
 
-
 MemBlockDevice::MemBlockDevice(const MemBlockDevice &other) : BlockDevice(other) 
 {
 	*this = other;
 }
-
 
 MemBlockDevice::~MemBlockDevice() 
 {
@@ -183,6 +181,18 @@ MemBlockDevice::IntNode * MemBlockDevice::buildList(int nrOfBlocks)
 		head = newNode;
 	}
 	return head;
+}
+
+void MemBlockDevice::createList(int * blocks, int size)
+{
+	// Clear current list
+	while (getFreeHDDIndex() != -1);
+
+	for (int i = size; i >= 0; i--)
+	{
+		IntNode* newNode = new IntNode(headNode, blocks[i]);
+		headNode = newNode;
+	}
 }
 
 void MemBlockDevice::copyList(IntNode* source, IntNode*& destination)

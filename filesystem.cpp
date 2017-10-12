@@ -228,6 +228,21 @@ bool FileSystem::readImage(char * folderPath)
 			
 			mMemblockDevice.writeBlock(i, blockContent);
 		}
+		// now is it time to gather all the free blocks
+		int* freeBlocks = new int[nrOfBlocks];
+		int arraySize = 0;
+		for (int i = 0; i < nrOfBlocks && size > bufferIndex; i++)
+		{
+			container = readString(buffer, bufferIndex);
+			if (container != "")
+			{
+				freeBlocks[arraySize++] = std::stoi(container);
+			}
+		}
+
+		mMemblockDevice.createList(freeBlocks, arraySize);
+		
+		delete[] freeBlocks;
 		delete[] buffer;
 		delete[] blockContent;
 		refreshCurrentInode();
@@ -746,6 +761,18 @@ std::string FileSystem::readFileLine(char * buffer, int & bufferIndex)
 		line += buffer[bufferIndex++];
 	}
 	bufferIndex += 2; // Jump over /r/n
+	return line;
+}
+
+std::string FileSystem::readString(char * buffer, int & bufferIndex)
+{
+
+	std::string line = "";
+	while (buffer[bufferIndex] != ' ')
+	{
+		line += buffer[bufferIndex++];
+	}
+	bufferIndex ++; // Jump over ' ' 
 	return line;
 }
 

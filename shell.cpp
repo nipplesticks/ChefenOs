@@ -65,15 +65,7 @@ int main(void) {
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
-					/*
-					clearScr();
-					std::cout << "\t\t\t\t\t\tAdvanced Editor\n";
-					std::string content;
-					std::getline(std::cin, content);
-					content += '\0';
-					clearScr();
-					*/
-
+				
 					/*Wow! Such advanced! Much wow!
 					    ─────────▄──────────────▄
 						────────▌▒█───────────▄▀▒▌
@@ -302,6 +294,7 @@ std::string help() {
     helpStr += "* cd     <directory>:               Changes current working directory to <directory>\n";
     helpStr += "* pwd:                              Get current working directory\n";
 	helpStr += "* clear:                            Clears the terminal window\n";
+	helpStr += "* tree:                             Lists contents of directories in a tree-like format\n";
     helpStr += "* help:                             Prints this help screen\n";
     return helpStr;
 }

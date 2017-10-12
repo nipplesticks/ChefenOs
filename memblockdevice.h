@@ -55,6 +55,7 @@ public:
 	Block* getPtrOfBlock(int index);
 
 	IntNode* buildList(int nrOfBlocks = 250);
+	void createList(int* blocks, int size);
 	void copyList(IntNode * source, IntNode*& destination);
 	int* getAllFreeBlocks(int& size);
 	int getFreeHDDIndex();
