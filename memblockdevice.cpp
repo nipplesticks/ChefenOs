@@ -3,20 +3,10 @@
 
 void MemBlockDevice::init()
 {
+	// Creates index linkedlist
+	headNode = buildList();
+	
 	reset();
-	char* rootName = constChartoChar("root");
-	char* rootType = constChartoChar("/");
-
-	Inode root(rootType, rootName, 0, 0);
-	// Gives the root folder 12 blocks
-	for (int i = 1; i < root.getNrOfBlocks(); i++)
-	{
-		root.setBlock(i);
-	}
-	freePointer = root.getNrOfBlocks() - 1; // Next free block
-	char* content = root.toCharArray();
-	writeBlock(0, content);
-	delete[] content;
 }
 
 MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks) 
@@ -24,26 +14,26 @@ MemBlockDevice::MemBlockDevice(int nrOfBlocks): BlockDevice(nrOfBlocks)
 	init();
 }
 
-MemBlockDevice::MemBlockDevice(int nrOfBlocks, int freePointer) : BlockDevice(nrOfBlocks)
+
+MemBlockDevice::MemBlockDevice(const MemBlockDevice &other) : BlockDevice(other) 
 {
-	this->freePointer = freePointer;
-}
-
-MemBlockDevice::MemBlockDevice(const MemBlockDevice &other) : BlockDevice(other) {
-
+	*this = other;
 }
 
 
-MemBlockDevice::~MemBlockDevice() {
+MemBlockDevice::~MemBlockDevice() 
+{
     /* Implicit call to base-class destructor */
+	// Basicly empties the blocks,
+	while (getFreeHDDIndex() != -1);
+		
 }
 
 MemBlockDevice& MemBlockDevice::operator=(const MemBlockDevice &other) {
     delete [] this->memBlocks;
     this->nrOfBlocks = other.nrOfBlocks;
-    this->freePointer = other.freePointer;
     this->memBlocks = new Block[this->nrOfBlocks];
-
+	copyList(other.headNode);
     for (int i = 0; i < this->nrOfBlocks; ++i)
         this->memBlocks[i] = other.memBlocks[i];
 
@@ -105,28 +95,25 @@ Block MemBlockDevice::readBlock(int blockNr) const {
     }
 }
 
-/* Resets all the blocks */
+/* Resets all the blocks and creates the root directory*/
 void MemBlockDevice::reset() {
     for (int i = 0; i < this->nrOfBlocks; ++i) {
         this->memBlocks[i].reset('0');
     }
-	char* rootName = new char[5];
-	rootName[0] = 'r';
-	rootName[1] = 'o';
-	rootName[2] = 'o';
-	rootName[3] = 't';
-	rootName[4] = '\0';
-	char* rootType = new char[2];
-	rootType[0] = '/';
-	rootType[1] = '\0';
 
-	Inode root(rootType, rootName, 0, 0);
-	// Gives the root folder 12 blocks
-	for (int i = 1; i < root.getNrOfBlocks() + 1; i++)
+	char* rootName = constChartoChar("root");
+	char* rootType = constChartoChar("/");
+
+	int HDDadress = getFreeHDDIndex();
+	// Special case where the root node have its own adress as a parent adress
+	Inode root(rootType, rootName, HDDadress, HDDadress);
+	
+	// Gives the root folder 10 blocks
+	for (int i = 0; i < root.getNrOfBlocks() - 2; i++)
 	{
-		root.setBlock(i);
+		root.setBlock(getFreeHDDIndex());
 	}
-	freePointer = root.getNrOfBlocks(); // Next free block
+
 	char* content = root.toCharArray();
 	writeBlock(0, content);
 	delete[] content;
@@ -135,14 +122,24 @@ void MemBlockDevice::reset() {
 int MemBlockDevice::size() const {
     return this->nrOfBlocks;
 }
-/*Remember to delete*/
-int * MemBlockDevice::getFreeBlockAdresses() 
+/*Remember to delete SHOULD NOT USE*/
+//int * MemBlockDevice::getFreeBlockAdresses() 
+//{
+//	int* blocks = new int[10];
+//	// Gives 12 free blocks
+//	for (unsigned i = 0; i < 10; i++)
+//	{
+//		//blocks[i] = freePointer++;
+//	}
+//	return blocks;
+//}
+
+int * MemBlockDevice::getFreeBlockAdresses2()
 {
 	int* blocks = new int[10];
-	// Gives 12 free blocks
-	for (unsigned i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++)
 	{
-		blocks[i] = freePointer++;
+		blocks[i] = getFreeHDDIndex();
 	}
 	return blocks;
 }
@@ -157,27 +154,73 @@ char * MemBlockDevice::constChartoChar(const char * string) const
 
 	return returnChar;
 }
-
+// NEED TO FIX
 std::string MemBlockDevice::toFile() const
 {
 	std::string content;
-	content += std::to_string(freePointer) + "\r\n";
+	//content += std::to_string(freePointer) + "\r\n";
 	content += std::to_string(nrOfBlocks) + "\r\n";
 	for (int i = 0; i < nrOfBlocks; i++)
 	{
 		for (int curblock = 0; curblock < 512; curblock++)
 		{
 			content += memBlocks[i][curblock];
-		}
-			
+		}		
 	}
-	
 	return content;
 }
 
 Block * MemBlockDevice::getPtrOfBlock(int index)
 {
 	
-
 	return &this->memBlocks[index];
+}
+
+MemBlockDevice::IntNode * MemBlockDevice::buildList(int nrOfBlocks)
+{
+	IntNode* head = nullptr;
+
+	for (int i = nrOfBlocks; i >= 0; i--)
+	{
+		IntNode* newNode = new IntNode(head, i);
+		head = newNode;
+	}
+	return head;
+}
+
+void MemBlockDevice::copyList(IntNode * head)
+{
+	// Clears this->headNode
+	while (getFreeHDDIndex() != -1);
+	
+	int array1[250], counter = 0;
+	// Reads all the values from argument head and stores them in array
+	IntNode** doublePointer = &head;
+	while (*doublePointer)
+	{
+		array1[counter++] = (*doublePointer)->m_Index;
+		doublePointer = &(*doublePointer)->m_NextNode;
+	}
+	// Transfer values backwards into this->headNode
+	for (int i = nrOfBlocks; i >= 0; i--)
+	{
+		IntNode* newNode = new IntNode(headNode, array1[i]);
+		headNode = newNode;
+	}
+}
+
+int MemBlockDevice::getFreeHDDIndex()
+{
+	IntNode** doublePointer = &headNode;
+
+	if (!*doublePointer)
+		return -1;
+	
+	IntNode* deletedNode = *doublePointer;
+	*doublePointer = deletedNode->m_NextNode;
+	deletedNode->m_NextNode = nullptr;
+	int value = deletedNode->m_Index;
+	delete deletedNode;
+
+	return value;
 }

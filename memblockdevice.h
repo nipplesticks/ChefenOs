@@ -7,10 +7,20 @@ class MemBlockDevice: public BlockDevice
 {
 private:
 	void init();
-	
+	class IntNode
+	{
+	public:
+		IntNode* m_NextNode;
+		int m_Index;
+		IntNode(IntNode* nextNode = 0, int index = 0)
+		{
+			m_NextNode = nextNode;
+			m_Index = index;
+		}
+	};
+	IntNode* headNode;
 public:
     MemBlockDevice(int nrOfBlocks = 250);
-	MemBlockDevice(int nrOfBlocks, int freePointer);
     MemBlockDevice(const MemBlockDevice &other);
 
     ~MemBlockDevice();
@@ -35,14 +45,21 @@ public:
 
     /* Return the size */
     int size() const;
-	/* Return freeblockadresses*/
-	int* getFreeBlockAdresses();
 	
-	void setFreePointer(int freePointer);
+	/*Remember to delete SHOULD NOT USE*/
+//	int* getFreeBlockAdresses();
+
+	/* Return freeblockadresses - linkedList */
+	int* getFreeBlockAdresses2();
+
 	char* constChartoChar(const char * string) const;
 	std::string toFile() const;
 
 	Block* getPtrOfBlock(int index);
+
+	IntNode* buildList(int nrOfBlocks = 250);
+	void copyList(IntNode* head);
+	int getFreeHDDIndex();
 };
 
 #endif // MEMBLOCKDEVICE_H

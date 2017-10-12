@@ -50,7 +50,7 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 		Inode* fileNode = new Inode(nodeType, name, hddWriteIndex, currentHolder->getHDDLoc());
 
 		// Obtain free block addresses for this fileNode
-		int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
+		int* freeBlocks = mMemblockDevice.getFreeBlockAdresses2();
 
 		for (int i = 0; i < fileNode->getNrOfBlocks() - 2; i++)
 			fileNode->setBlock(freeBlocks[i]);
@@ -124,7 +124,7 @@ bool FileSystem::createFolder(char * folderName)
 				char* currentType = stringToCharP(std::string("/"));
 
 				Inode *newInode = new Inode(currentType, currentFolder, hddWriteIndex, currentHolder->getHDDLoc());
-				int* freeBlocks = mMemblockDevice.getFreeBlockAdresses();
+				int* freeBlocks = mMemblockDevice.getFreeBlockAdresses2();
 				for (int i = 0; i < newInode->getNrOfBlocks() - 2; i++)
 					newInode->setBlock(freeBlocks[i]);
 				delete[] freeBlocks;
@@ -395,15 +395,6 @@ Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int
 
 void FileSystem::init()
 {
-	//Set up the linked-list
-	freeBlocks = nullptr;
-	initLinkedList();
-	/*
-	Continue doing stuff
-	
-	*/
-
-
 	// Initilize root directory
 	currentInode = new Inode(mMemblockDevice.readBlock(0));
 
@@ -424,22 +415,18 @@ bool FileSystem::changeDir(char * folderPath)
 
 std::string FileSystem::toTreeFormat() const
 {
-	/*
-	.
-	├── a/
-	│	├─ hejsan.txt
-	│	└─ enFil.txt
-	└── b/
-	2 directories, 2 files
-	*/
+
 	std::string returnString = "/\n";
 	int width = 0;
 	int undone = 0;
 	int* counter = new int[2];
 	counter[0] = 0;
 	counter[1] = 0;
+
 	traverseDirectory(currentInode, width,undone,false, returnString,counter);
+
 	returnString += "\n";
+	// Grammer
 	if (counter[0] > 1)
 		returnString += std::to_string(counter[0]) + " directories, ";
 	else
@@ -490,7 +477,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 	{
 		targetNode->setParentHDDLoc(destinationNode->getHDDLoc());
 		//Ta fram 10 adresser till disken
-		int * targetSubAdresses = mMemblockDevice.getFreeBlockAdresses();
+		int * targetSubAdresses = mMemblockDevice.getFreeBlockAdresses2();
 		//Loopa number of adresses i target
 		int nrOfBlocks = targetNode->getNrOfBlocks();
 		if (targetNode->getType()[0] == '/')
@@ -559,18 +546,6 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 	}
 
 	return returnValue;
-}
-
-void FileSystem::initLinkedList()
-{
-	freeBlocks = new Node;
-	Node* walker = freeBlocks;
-	for (int i = 0; i < 250; i++)
-	{
-		walker->data = mMemblockDevice.getPtrOfBlock(i);
-		walker->next = new Node;
-		walker = walker->next;
-	}
 }
 
 bool FileSystem::copyTarget(char * target, char * destination)
@@ -823,7 +798,7 @@ void FileSystem::traverseDirectory(Inode * current, int & width, int& undone,boo
 					else
 						content += "|   ";
 				}*/
-				content += "´-- ";
+				content += "L__ ";
 				content += tempNode->getName();
 				
 				last = true;
@@ -875,14 +850,3 @@ void FileSystem::changeCurrentInode(Inode * newCur)
 
 
 /* Please insert your code */
-
-FileSystem::Node::Node()
-{
-	next = nullptr;
-	data = nullptr;
-}
-
-FileSystem::Node::~Node()
-{
-	//clean up
-}
