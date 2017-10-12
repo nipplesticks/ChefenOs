@@ -8,9 +8,20 @@
 class FileSystem
 {
 private:
+	class Node
+	{
+	public:
+		Node* next;
+		Block* data;
+	public:
+		Node();
+		~Node(); //inte klar
+	};
+private:
     MemBlockDevice mMemblockDevice;
 	Inode* currentInode;
 	std::string currentDirectory;
+	Node* freeBlocks;
 
 public:
     FileSystem();
@@ -99,5 +110,7 @@ private:
 	void init();
 
 	bool copyRecursive(Inode * target, Inode * destination);
+
+	void initLinkedList();
 };
 #endif // FILESYSTEM_H

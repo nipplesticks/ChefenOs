@@ -174,3 +174,10 @@ std::string MemBlockDevice::toFile() const
 	
 	return content;
 }
+
+Block * MemBlockDevice::getPtrOfBlock(int index)
+{
+	
+
+	return &this->memBlocks[index];
+}

@@ -395,6 +395,15 @@ Inode * FileSystem::pathSolver(char * folderName, std::string*& folderNames, int
 
 void FileSystem::init()
 {
+	//Set up the linked-list
+	freeBlocks = nullptr;
+	initLinkedList();
+	/*
+	Continue doing stuff
+	
+	*/
+
+
 	// Initilize root directory
 	currentInode = new Inode(mMemblockDevice.readBlock(0));
 
@@ -550,6 +559,18 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 	}
 
 	return returnValue;
+}
+
+void FileSystem::initLinkedList()
+{
+	freeBlocks = new Node;
+	Node* walker = freeBlocks;
+	for (int i = 0; i < 250; i++)
+	{
+		walker->data = mMemblockDevice.getPtrOfBlock(i);
+		walker->next = new Node;
+		walker = walker->next;
+	}
 }
 
 bool FileSystem::copyTarget(char * target, char * destination)
@@ -802,7 +823,7 @@ void FileSystem::traverseDirectory(Inode * current, int & width, int& undone,boo
 					else
 						content += "|   ";
 				}*/
-				content += "`-- ";
+				content += "´-- ";
 				content += tempNode->getName();
 				
 				last = true;
@@ -854,3 +875,14 @@ void FileSystem::changeCurrentInode(Inode * newCur)
 
 
 /* Please insert your code */
+
+FileSystem::Node::Node()
+{
+	next = nullptr;
+	data = nullptr;
+}
+
+FileSystem::Node::~Node()
+{
+	//clean up
+}

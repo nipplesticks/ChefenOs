@@ -41,6 +41,8 @@ public:
 	void setFreePointer(int freePointer);
 	char* constChartoChar(const char * string) const;
 	std::string toFile() const;
+
+	Block* getPtrOfBlock(int index);
 };
 
 #endif // MEMBLOCKDEVICE_H
