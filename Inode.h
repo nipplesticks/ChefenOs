@@ -10,7 +10,6 @@ class Inode
 {
 private:
 	//Metadata
-	
 	char* type;
 	char* name;
 	int hddLoc;
@@ -30,6 +29,7 @@ public:
 	void setName(char *&name);
 	void setParentHDDLoc(int adress);
 	void setHDDLoc(int adress);
+	
 	/*Returns old adress*/
 	int changeBlockAdress(int index, int newAdress);
 
@@ -41,22 +41,29 @@ public:
 
 	/* Return true if block is in use */
 	bool isBlockUsed(int index)  const;
+	/* Retrun number of blocks */
 	int getNrOfBlocks() const;
+	/* Return number of blocks not in use */
+	int getNrOfFreeBlocks() const;
 	/* Returns adress to the hdd*/
 	int getHDDadress(int index) const;
 
 	bool setBlock(int adress);
-	/* REMEBER TO REMOVE */
+
+	/* Returns all the information from this node to a char*
+	   REMEMBER TO DELETE */
 	char* toCharArray() const;
 	
 	/* Retun free block within the Inode*/
 	int freeBlockInInode();
 	
-	Inode& operator=(const Inode &other);
 	bool lockFirstAvailableBlock();
+	/* Locks block at index */
+	bool lockBlockAt(int index);
+	/* Unlocks block at index */
+	bool unlockBlockAt(int index);
 
-	bool removeNodeAt(int index);
-
+	Inode& operator=(const Inode &other);
 private:
 	void cleanup();
 	void copy(const Inode &other);

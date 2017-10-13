@@ -83,8 +83,19 @@ bool Inode::lockFirstAvailableBlock()
 		usedBlocks[index] = true;
 	return index != -1;
 }
-
-bool Inode::removeNodeAt(int index)
+/* Locks block at index */
+bool Inode::lockBlockAt(int index)
+{
+	bool result = false;
+	if (index < nrOfBlocks || index > 0)
+	{
+		usedBlocks[index] = true;
+		result = true;
+	}
+	return result;
+}
+/* Unlocks block at index */
+bool Inode::unlockBlockAt(int index)
 {
 	bool removed = false;
 	if (index > 1 && index < nrOfBlocks)
@@ -97,7 +108,8 @@ bool Inode::removeNodeAt(int index)
 	return removed;
 }
 
-/*Converts all variables into a char array*/
+/* Returns all the information from this node to a char*
+REMEMBER TO DELETE */
 char * Inode::toCharArray() const
 {
 	char *buffert = new char[512];
@@ -284,9 +296,21 @@ bool Inode::isBlockUsed(int index) const
 	return usedBlocks[index];
 }
 
+/* Retrun number of blocks */
 int Inode::getNrOfBlocks() const
 {
 	return nrOfBlocks;
+}
+
+/* Return number of blocks not in use */
+int Inode::getNrOfFreeBlocks() const
+{
+	int counter = 0;
+	for (int i = 0; i < nrOfBlocks; i++)
+	{
+		if (!usedBlocks[i])counter++;
+	}
+	return counter;
 }
 
 int Inode::getHDDadress(int index) const
