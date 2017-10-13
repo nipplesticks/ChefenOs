@@ -643,12 +643,6 @@ bool FileSystem::copyTarget(char * target, char * destination)
 
 bool FileSystem::removeFile(char* fileName, Inode* parentNode)
 {
-	/*	1. Hitta filen i parentNode
-		2. Hämta alla HDD platser som är kopplade till filen vi ska ta bort
-		3. Ge tillbaka platserna till mMemblockDevice
-		4. Ta bort kopplingen i förälder noden
-		5. Uppdatera förälder noden!!
-	*/
 	bool removed = false;
 	if (parentNode->getNrOfFreeBlocks())
 	{
@@ -693,33 +687,115 @@ bool FileSystem::removeFile(char* fileName, Inode* parentNode)
 	return removed;
 }
 
-bool FileSystem::removeFolder(char * path)
+bool FileSystem::remove(char * path)
 {
-	//bool removed = false;
-	//Inode *removalNode = nullptr;
-	//
-	//removalNode = walkDir(path); //gets Inode which points to folder on disk
-	//if (removalNode != nullptr) //if exists
-	//{
-	//	Block parentBlock = mMemblockDevice.readBlock(removalNode->getParentHDDLoc()); //Gets parent inode to the removal inode
-	//	Inode * parentNode = new Inode(parentBlock);
+	bool result = false;
+	Inode* nodeToDelete = walkDir(path);
+	const char* name = nodeToDelete->getName();
+	if (nodeToDelete)
+	{
+		Block parentBlock = mMemblockDevice.readBlock(nodeToDelete->getParentHDDLoc());
+		Inode* parentNode = new Inode(parentBlock);
 
-	//	//Gets index in blockedUsed array with name of the removal node. Sets this index to false.
-	//	removed = parentNode->unlockBlockAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
+		if (!strcmp(nodeToDelete->getType(), "/"))
+		{
+			clearFolder(nodeToDelete);
 
-	//	char * parentNodeAsChar = parentNode->toCharArray();
-	//	mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeAsChar);
-	//	delete[] parentNodeAsChar;
+			int nrOfAdresses = nodeToDelete->getNrOfBlocks();
+			int counter = 0;
+			int* adresses = new int[nrOfAdresses];
+			for (int curAdr = 2; curAdr < nrOfAdresses; curAdr++)
+			{
+				adresses[counter++] = nodeToDelete->getHDDadress(curAdr);
+			}
+			// After obtaining all the addresses we will now give them back to mMemblockDevice
+			for (int j = counter - 1; j >= 0; j--)
+				mMemblockDevice.insertBlockIndex(adresses[j]);
 
-	//	refreshCurrentInode();
+			for (int i = 2; i < nrOfAdresses; i++)
+			{
+				if (parentNode->isBlockUsed(i))
+				{
+					Block childBlock = mMemblockDevice.readBlock(i);
+					Inode temp(childBlock);
 
-	//	delete removalNode;
-	//	delete parentNode;
+					if (!strcmp(name, nodeToDelete->getName()))
+					{
+						parentNode->unlockBlockAt(i);
+						result = true;
+					}
+				}
+			}
+			
+			char* parentNodeContent = parentNode->toCharArray();
 
-	//}
-	//
-	return removeFile(path, currentInode);
+			mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeContent);
+
+			delete[] adresses;
+			delete[] parentNodeContent;
+			
+		}
+		else
+			result = removeFile(path, parentNode);
+
+		delete parentNode;
+	}
+
+	refreshCurrentInode();
+	delete nodeToDelete;
+	return result;
 }
+
+bool FileSystem::clearFolder(Inode* tbrNode)
+{
+	bool removed = false;
+	int nrOfBlocks = tbrNode->getNrOfBlocks();
+	for (int i = 2; i < nrOfBlocks; i++)
+	{
+		if (tbrNode->isBlockUsed(i))
+		{
+			Block currentBlock = mMemblockDevice.readBlock(tbrNode->getHDDadress(i));
+			Inode temp(currentBlock);
+			if (!strcmp(temp.getType(), "file"))
+			{
+				char* name = constChartoChar(temp.getName());
+				removeFile(name, tbrNode);
+				delete[] name;
+			}
+			else
+			{
+				Inode* childFolder = new Inode(currentBlock);
+				clearFolder(childFolder);
+				int nrOfAdresses = childFolder->getNrOfBlocks();
+				int counter = 0;
+				int* adresses = new int[nrOfAdresses];
+				for (int curAdr = 2; curAdr < nrOfAdresses; curAdr++)
+				{
+					adresses[counter++] = childFolder->getHDDadress(curAdr);
+				}
+				// After obtaining all the addresses we will now give them back to mMemblockDevice
+				for (int j = counter - 1; j >= 0; j--)
+					mMemblockDevice.insertBlockIndex(adresses[j]);
+
+				tbrNode->unlockBlockAt(i);
+				char* parentNodeContent = tbrNode->toCharArray();
+
+				mMemblockDevice.writeBlock(tbrNode->getHDDLoc(), parentNodeContent);
+				
+				delete[] adresses;
+				delete[] parentNodeContent;
+				removed = true;
+
+				delete childFolder;
+			}
+		}
+	}
+
+
+	return removed;
+}
+
+
 
 /* Compares all the names in the current Inode
 Return false if name found */

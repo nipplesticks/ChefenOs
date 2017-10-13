@@ -150,7 +150,7 @@ int main(void) {
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
-					if (!fs.removeFolder(target))
+					if (!fs.remove(target))
 					{
 						std::cout << "rm: cannot access '" << target << "': No such file or directory\n";
 					}

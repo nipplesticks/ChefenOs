@@ -156,7 +156,7 @@ std::string MemBlockDevice::toFile()
 	}
 	int size = 0;
 	int* freeBlocks = getAllFreeBlocks(size);
-	for (int i = 0; i < size - 1; i++)
+	for (int i = 0; i < size; i++)
 	{
 		content += std::to_string(freeBlocks[i]) + " ";
 	}
@@ -228,7 +228,7 @@ void MemBlockDevice::copyList(IntNode* source, IntNode*& destination)
 		doublePointer = &(*doublePointer)->m_NextNode;
 	}
 	// Transfer values backwards into this->headNode
-	for (int i = nrOfBlocks; i >= 0; i--)
+	for (int i = counter; i >= 0; i--)
 	{
 		IntNode* newNode = new IntNode(destination, array1[i]);
 		destination = newNode;

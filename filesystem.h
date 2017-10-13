@@ -34,9 +34,11 @@ public:
 	bool copyTarget(char * target, char * destination);
 
     /* Removes a folder in the filesystem */
-	bool removeFolder(char * path);
+	bool clearFolder(Inode* tbrNode);
 
 	bool removeFile(char* fileName, Inode* parentNode);
+
+	bool remove(char* path);
 
 	void createImage(char* folderPath);
 
