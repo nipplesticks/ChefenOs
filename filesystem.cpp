@@ -16,14 +16,11 @@ void FileSystem::formatHDD()
 	init();
 
 }
-/*	
-TODO: 
-	- Files greater than 512
-	- Unique name checking
-*/
+
 bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
-	// Figure out the path and file name
+	bool isCreated = false;
+
 	int arraySize = 0;
 	std::string* folders;
 	Inode * temp = pathSolver(fileName, folders, arraySize);
@@ -39,74 +36,95 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 	Inode* currentHolder = walkDir(fpbf_p);
 	delete[] fpbf_p;
 
-	bool isCreated = false;
-
 	char* nodeType = constChartoChar("file");
 	char* name = stringToCharP(folders[arraySize - 1]);
 
-	if(isNameUnique(name, currentHolder))
+	// Check to see if there is any room left for the parent node AND if the name is unique
+	if (currentHolder->getNrOfFreeBlocks() && isNameUnique(name, currentHolder))
 	{
-		/* 
-			1. Check to see if there is any room left for the parent node 
-			2. Check to see if the name is unique.
-			3. Create the fileNode.
-			4. Calculate how many blocks are needed for the file content. 
-			5. Check if there is space to store all the necesary blocks in file node
-			6. Write each block to the fileNode
-			7. 
-		*/ 
-
-		int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode()); 
+		// Create the fileNode
+		int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode());
 
 		// Now lets create the filenode
 		Inode* fileNode = new Inode(nodeType, name, hddWriteIndex, currentHolder->getHDDLoc());
-		
+
 		// Gives the filenode access to ten blocks
 		for (int i = 0; i < fileNode->getNrOfBlocks() - 2; i++)
 			fileNode->setBlock(mMemblockDevice.getFreeHDDIndex());
 
-		// Index of first free block in fileNode to store file content
-		int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
+		// Now is it time to check how many blocks the content require.
+		int numberOfBlocks = (sizeInBytes / 512) + 1; 
 
-
-
-
-		// If blocks are available
-		if (currentHolder->lockFirstAvailableBlock() && fileNode->lockFirstAvailableBlock())
+		if (numberOfBlocks < fileNode->getNrOfFreeBlocks())
 		{
+			// Now is it time to fill the buffers with filecontent
+			char** buffers = new char*[numberOfBlocks];
+			for (int i = 0; i < numberOfBlocks; i++)
+			{
+				buffers[i] = new char[512];
+			}
+
+			int currentBlock = 0;
+			do
+			{
+				for (int k = 0; k < 512; k++)
+				{
+					buffers[currentBlock][k] = content[k + (currentBlock * 512)];
+				}
+				currentBlock++;
+			} while (currentBlock < numberOfBlocks - 1);
+
+			int rest = sizeInBytes % 512;
+			if (sizeInBytes != rest)
+			{
+				for (int k = 0; k < rest; k++)
+				{
+					buffers[currentBlock][k] = content[k+(currentBlock *512)];
+				}
+				buffers[currentBlock][rest] = '\0';
+			}
+
+			// Now is it time to write to the fileNode
+			for (int i = 0; i < numberOfBlocks; i++)
+			{
+				fileNode->lockBlockAt(i + 2);
+				mMemblockDevice.writeBlock(fileNode->getHDDadress(i + 2), buffers[i]);
+			}
+
+			// Now is it time to write the fileNode to disk and parentNode
+			currentHolder->lockFirstAvailableBlock();
+
 			char* fileNodeContent = fileNode->toCharArray();
 			char* currentNodeContent = currentHolder->toCharArray();
-			char* blockContent = new char[512];
 
-			// Just to terminate the file correctly
-			int i = 0;
-			for (; i < sizeInBytes; i++) blockContent[i] = content[i];
-			blockContent[i] = '\0';
-
-			mMemblockDevice.writeBlock(freeNodewriteIndex, blockContent); // Write filecontent to disk
-			mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);	// Write file-node to disk
-			mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currentNodeContent);	//Write currentNode to disk
+			mMemblockDevice.writeBlock(hddWriteIndex, fileNodeContent);
+			mMemblockDevice.writeBlock(currentHolder->getHDDLoc(), currentNodeContent);
 
 			delete[] fileNodeContent;
 			delete[] currentNodeContent;
-			delete[] blockContent;
 
 			refreshCurrentInode();
 
 			isCreated = true;
+			for (int i = 0; i < numberOfBlocks; i++)
+			{
+				delete[] buffers[i];
+			}
+			delete buffers;
 		}
+		
 		delete fileNode;
+
 	}
 	else
 	{
 		delete[] nodeType;
 		delete[] name;
 	}
- 	
-	delete currentHolder;
 	delete[] folders;
-
+	delete currentHolder;
 	return isCreated;
+	
 }
 
 /* Creates a folder entry in the current INode
