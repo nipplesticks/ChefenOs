@@ -91,7 +91,7 @@ private:
 	char* constChartoChar(const char* string) const;
 
 	std::string readFileLine(char* buffer, int& bufferIndex);
-	std::string readString(char* buffer, int& bufferIndex);
+	std::string readString(char* buffer, int& bufferIndex, int size);
 
 	void traverseDirectory(Inode* current, int& width, int& undone,bool last, std::string& content,int*& counter) const;
 

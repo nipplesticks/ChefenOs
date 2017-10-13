@@ -23,7 +23,7 @@ TODO:
 */
 bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
-
+	// Figure out the path and file name
 	int arraySize = 0;
 	std::string* folders;
 	Inode * temp = pathSolver(fileName, folders, arraySize);
@@ -40,24 +40,36 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 	delete[] fpbf_p;
 
 	bool isCreated = false;
-	// Setup pre-node creation
-	int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode());
+
 	char* nodeType = constChartoChar("file");
 	char* name = stringToCharP(folders[arraySize - 1]);
 
 	if(isNameUnique(name, currentHolder))
 	{
+		/* 
+			1. Check to see if there is any room left for the parent node 
+			2. Check to see if the name is unique.
+			3. Create the fileNode.
+			4. Calculate how many blocks are needed for the file content. 
+			5. Check if there is space to store all the necesary blocks in file node
+			6. Write each block to the fileNode
+			7. 
+		*/ 
+
+		int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode()); 
+
+		// Now lets create the filenode
 		Inode* fileNode = new Inode(nodeType, name, hddWriteIndex, currentHolder->getHDDLoc());
-
-		// Obtain free block addresses for this fileNode
-		//int* freeBlocks = mMemblockDevice.getFreeBlockAdresses2();
-
+		
+		// Gives the filenode access to ten blocks
 		for (int i = 0; i < fileNode->getNrOfBlocks() - 2; i++)
 			fileNode->setBlock(mMemblockDevice.getFreeHDDIndex());
-		//delete[] freeBlocks;
 
 		// Index of first free block in fileNode to store file content
 		int freeNodewriteIndex = fileNode->getHDDadress(fileNode->freeBlockInInode());
+
+
+
 
 		// If blocks are available
 		if (currentHolder->lockFirstAvailableBlock() && fileNode->lockFirstAvailableBlock())
@@ -205,8 +217,7 @@ bool FileSystem::readImage(char * folderPath)
 		// Reset filepointer to begining
 		file.seekg(0, std::ios_base::beg);
 		
-		char* buffer = new char[size+1];
-		buffer[size] = '\0';
+		char* buffer = new char[size];
 
 		// Fill buffer with file content
 		file.read(buffer, size);
@@ -231,13 +242,14 @@ bool FileSystem::readImage(char * folderPath)
 		// now is it time to gather all the free blocks
 		int* freeBlocks = new int[nrOfBlocks];
 		int arraySize = 0;
-		for (int i = 0; i < nrOfBlocks && size > bufferIndex; i++)
+		while((1 + size)> bufferIndex)
 		{
-			container = readString(buffer, bufferIndex);
-			if (container != "")
+			container = readString(buffer, bufferIndex, size);
+			if (strcmp(container.c_str(), ""))
 			{
 				freeBlocks[arraySize++] = std::stoi(container);
 			}
+			
 		}
 
 		mMemblockDevice.createList(freeBlocks, arraySize);
@@ -622,7 +634,7 @@ bool FileSystem::removeFolder(char * path)
 		Inode * parentNode = new Inode(parentBlock);
 
 		//Gets index in blockedUsed array with name of the removal node. Sets this index to false.
-		removed = parentNode->removeNodeAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
+		removed = parentNode->unlockBlockAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
 
 		char * parentNodeAsChar = parentNode->toCharArray();
 		mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeAsChar);
@@ -764,15 +776,15 @@ std::string FileSystem::readFileLine(char * buffer, int & bufferIndex)
 	return line;
 }
 
-std::string FileSystem::readString(char * buffer, int & bufferIndex)
+std::string FileSystem::readString(char * buffer, int & bufferIndex, int size)
 {
 
 	std::string line = "";
-	while (buffer[bufferIndex] != ' ')
+	while (buffer[bufferIndex] != ' ' && size >= bufferIndex)
 	{
 		line += buffer[bufferIndex++];
 	}
-	bufferIndex ++; // Jump over ' ' 
+	bufferIndex++; // Jump over ' ' 
 	return line;
 }
 
@@ -800,7 +812,7 @@ void FileSystem::traverseDirectory(Inode * current, int & width, int& undone,boo
 				}
 				for(int i = 0; i < (width- undone);i++)
 					content += "    ";
-				content += "+-- ";
+				content += "L__ ";
 				content += tempNode->getName();	
 				if(!strcmp(tempNode->getType(), "/") && !last) 
 					undone++;

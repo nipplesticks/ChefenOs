@@ -156,10 +156,11 @@ std::string MemBlockDevice::toFile()
 	}
 	int size = 0;
 	int* freeBlocks = getAllFreeBlocks(size);
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < size - 1; i++)
 	{
 		content += std::to_string(freeBlocks[i]) + " ";
 	}
+	content += '\0';
 
 	delete[] freeBlocks;
 	return content;
@@ -265,6 +266,7 @@ int MemBlockDevice::getFreeHDDIndex()
 	deletedNode->m_NextNode = nullptr;
 	int value = deletedNode->m_Index;
 	delete deletedNode;
+	deletedNode = nullptr;
 
 	return value;
 }
