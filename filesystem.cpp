@@ -9,6 +9,7 @@ FileSystem::~FileSystem()
 {
 	delete currentInode;
 }
+
 void FileSystem::formatHDD()
 {
 	delete currentInode;
@@ -640,32 +641,84 @@ bool FileSystem::copyTarget(char * target, char * destination)
 	return result;
 }
 
+bool FileSystem::removeFile(char* fileName, Inode* parentNode)
+{
+	/*	1. Hitta filen i parentNode
+		2. Hämta alla HDD platser som är kopplade till filen vi ska ta bort
+		3. Ge tillbaka platserna till mMemblockDevice
+		4. Ta bort kopplingen i förälder noden
+		5. Uppdatera förälder noden!!
+	*/
+	bool removed = false;
+	if (parentNode->getNrOfFreeBlocks())
+	{
+		int numberOfBlocks = parentNode->getNrOfBlocks();
+		for (int i = 2; i < numberOfBlocks; i++)
+		{
+			if (parentNode->isBlockUsed(i))
+			{
+				int hddAddressToRemove = parentNode->getHDDadress(i);
+				Block nodeBlock = mMemblockDevice.readBlock(hddAddressToRemove);
+				Inode temp(nodeBlock);
+				
+				if (!strcmp(temp.getName(), (const char*)fileName)) 
+				{
+					int numberOfAdresses = temp.getNrOfBlocks();
+					int* hddAdresses = new int[numberOfAdresses];
+					int counter = 0;
+					for (int curAdr = 2; curAdr < numberOfAdresses; curAdr++)
+					{
+						int address = temp.getHDDadress(curAdr);
+						if (address != -1)
+							hddAdresses[counter++] = address;
+					}
+					// After obtaining all the addresses we will now give them back to mMemblockDevice
+					for (int j = counter - 1; j >= 0; j--)
+						mMemblockDevice.insertBlockIndex(hddAdresses[j]);
+					
+					// Now we cut the connection with the parent node
+					parentNode->unlockBlockAt(i);
+					char* parentNodeContent = parentNode->toCharArray();
+
+					mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeContent);
+
+					delete[] parentNodeContent;
+					delete[] hddAdresses;
+					refreshCurrentInode();
+					removed = true;
+				}
+			}
+		}
+	}
+	return removed;
+}
+
 bool FileSystem::removeFolder(char * path)
 {
-	bool removed = false;
-	Inode *removalNode = nullptr;
-	
-	removalNode = walkDir(path); //gets Inode which points to folder on disk
-	if (removalNode != nullptr) //if exists
-	{
-		Block parentBlock = mMemblockDevice.readBlock(removalNode->getParentHDDLoc()); //Gets parent inode to the removal inode
-		Inode * parentNode = new Inode(parentBlock);
+	//bool removed = false;
+	//Inode *removalNode = nullptr;
+	//
+	//removalNode = walkDir(path); //gets Inode which points to folder on disk
+	//if (removalNode != nullptr) //if exists
+	//{
+	//	Block parentBlock = mMemblockDevice.readBlock(removalNode->getParentHDDLoc()); //Gets parent inode to the removal inode
+	//	Inode * parentNode = new Inode(parentBlock);
 
-		//Gets index in blockedUsed array with name of the removal node. Sets this index to false.
-		removed = parentNode->unlockBlockAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
+	//	//Gets index in blockedUsed array with name of the removal node. Sets this index to false.
+	//	removed = parentNode->unlockBlockAt(this->getIndexOfNodeWithName(removalNode->getName(), parentNode));
 
-		char * parentNodeAsChar = parentNode->toCharArray();
-		mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeAsChar);
-		delete[] parentNodeAsChar;
+	//	char * parentNodeAsChar = parentNode->toCharArray();
+	//	mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeAsChar);
+	//	delete[] parentNodeAsChar;
 
-		refreshCurrentInode();
+	//	refreshCurrentInode();
 
-		delete removalNode;
-		delete parentNode;
+	//	delete removalNode;
+	//	delete parentNode;
 
-	}
-	
-	return removed;
+	//}
+	//
+	return removeFile(path, currentInode);
 }
 
 /* Compares all the names in the current Inode

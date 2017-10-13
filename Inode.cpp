@@ -103,7 +103,6 @@ bool Inode::unlockBlockAt(int index)
 		removed = usedBlocks[index];
 		usedBlocks[index] = false;
 	}
-	
 
 	return removed;
 }

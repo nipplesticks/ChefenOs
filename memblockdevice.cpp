@@ -172,6 +172,17 @@ Block * MemBlockDevice::getPtrOfBlock(int index)
 	return &this->memBlocks[index];
 }
 
+bool MemBlockDevice::insertBlockIndex(int index)
+{
+	bool canInsert = index > 0 || index < nrOfBlocks;
+	if (canInsert)
+	{
+		IntNode* newNode = new IntNode(headNode, index);
+		headNode = newNode;
+	}
+	return canInsert;
+}
+
 MemBlockDevice::IntNode * MemBlockDevice::buildList(int nrOfBlocks)
 {
 	IntNode* head = nullptr;

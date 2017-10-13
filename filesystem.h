@@ -36,6 +36,8 @@ public:
     /* Removes a folder in the filesystem */
 	bool removeFolder(char * path);
 
+	bool removeFile(char* fileName, Inode* parentNode);
+
 	void createImage(char* folderPath);
 
 	bool readImage(char* folderPath);
