@@ -61,7 +61,7 @@ public:
 
 	//Global removal
 	
-	std::string getFileContent(char * target) const;
+	bool getFileContent(char * target, std::string& content) const;
 
 private:
 	// Help functions

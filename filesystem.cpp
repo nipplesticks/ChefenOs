@@ -24,18 +24,28 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 
 	int arraySize = 0;
 	std::string* folders;
-	Inode * temp = pathSolver(fileName, folders, arraySize);
-	delete temp;
-
+	Inode* tempNode = pathSolver(fileName, folders, arraySize);
+	// Now i know if its relative or absolute path
 	std::string filePathBeforeFile;
 	for (int i = 0; i < arraySize - 1; i++)
 	{
 		filePathBeforeFile += "/" + folders[i];
 	}
+	Inode* currentHolder = nullptr;
+	if (arraySize - 1 == 0)
+	{
+		currentHolder = tempNode;
+	}
+	else
+	{
+		char* fpbf_p = stringToCharP(filePathBeforeFile);
+		createFolder(fpbf_p);
 
-	char* fpbf_p = stringToCharP(filePathBeforeFile);
-	Inode* currentHolder = walkDir(fpbf_p);
-	delete[] fpbf_p;
+		currentHolder = walkDir(fpbf_p);
+		delete[] fpbf_p;
+		delete tempNode;
+
+	}
 
 	char* nodeType = constChartoChar("file");
 	char* name = stringToCharP(folders[arraySize - 1]);
@@ -343,7 +353,8 @@ void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
 		currentDirectory = str;
 }
 
-/* Fully working changeDir method with support for multiple slashes */
+/* Fully working changeDir method with support for multiple slashes 
+Remember to delete return pointer*/
 Inode* FileSystem::walkDir(char * folderPath) const
 {
 	// Initialize variables
@@ -484,31 +495,53 @@ std::string FileSystem::toTreeFormat() const
 	return returnString;
 }
 
-std::string FileSystem::getFileContent(char * target) const
+bool FileSystem::getFileContent(char * target, std::string& content) const
 {
-	std::string returnString = "";
+	bool found = false;
+	int arraySize = 0;
+	std::string* folders;
+	Inode * temp = pathSolver(target, folders, arraySize);
 
-	Inode * targetFile = walkDir(target);
-
-	if (targetFile->getType()[0] != '/')
+	std::string filePathBeforeFile;
+	for (int i = 0; i < arraySize - 1; i++)
 	{
-		int nrOfBlocks = targetFile->getNrOfBlocks();
+		filePathBeforeFile += "/" + folders[i];
+	}
+
+	Inode* currentHolder = nullptr;
+	if (arraySize - 1 == 0)
+	{
+		currentHolder = temp;
+	}
+	else
+	{
+
+		char* fpbf_p = stringToCharP(filePathBeforeFile);
+		currentHolder = walkDir(target);
+		delete temp;
+		delete[] fpbf_p;
+
+	}
+	if (currentHolder)
+	{
+		int nrOfBlocks = currentHolder->getNrOfBlocks();
 		for (int i = 2; i < nrOfBlocks; i++)
 		{
-			if (targetFile->isBlockUsed(i))
+			if (currentHolder->isBlockUsed(i))
 			{
-				Block partOfFile = mMemblockDevice.readBlock(targetFile->getHDDadress(i));
-				for(int contentIndex = 0; (contentIndex < 512) && partOfFile.toString()[contentIndex] != '\0'; contentIndex++)
-				{ 
-					returnString += partOfFile.toString()[contentIndex];
+				Block partOfFile = mMemblockDevice.readBlock(currentHolder->getHDDadress(i));
+				for (int contentIndex = 0; (contentIndex < 512) && partOfFile.toString()[contentIndex] != '\0'; contentIndex++)
+				{
+					content += partOfFile.toString()[contentIndex];
 				}
 			}
 		}
-		returnString += '\n';
+		found = true;
+		content += '\n';
 	}
-
-	delete targetFile;
-	return returnString;
+	delete[] folders;
+	delete currentHolder;
+	return found;
 }
 
 bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
@@ -691,9 +724,9 @@ bool FileSystem::remove(char * path)
 {
 	bool result = false;
 	Inode* nodeToDelete = walkDir(path);
-	const char* name = nodeToDelete->getName();
 	if (nodeToDelete)
 	{
+		const char* name = nodeToDelete->getName();
 		Block parentBlock = mMemblockDevice.readBlock(nodeToDelete->getParentHDDLoc());
 		Inode* parentNode = new Inode(parentBlock);
 
@@ -712,7 +745,7 @@ bool FileSystem::remove(char * path)
 			for (int j = counter - 1; j >= 0; j--)
 				mMemblockDevice.insertBlockIndex(adresses[j]);
 
-			for (int i = 2; i < nrOfAdresses; i++)
+			for (int i = 2; i < nrOfAdresses && !result; i++)
 			{
 				if (parentNode->isBlockUsed(i))
 				{
@@ -794,8 +827,6 @@ bool FileSystem::clearFolder(Inode* tbrNode)
 
 	return removed;
 }
-
-
 
 /* Compares all the names in the current Inode
 Return false if name found */

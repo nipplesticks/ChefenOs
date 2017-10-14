@@ -65,7 +65,6 @@ int main(void) {
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
-				
 					/*Wow! Such advanced! Much wow!
 					    ─────────▄──────────────▄
 						────────▌▒█───────────▄▀▒▌
@@ -102,14 +101,14 @@ int main(void) {
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target)
 				{
-					std::string fileContent = fs.getFileContent(target);
-					if (fileContent != "")
+					std::string fileContent;
+					if (fs.getFileContent(target,fileContent))
 					{
 						std::cout << fileContent << std::endl;
 					}
 					else
 					{
-						std::cout << target << " is a directory\n";
+						std::cout << "cat: " << target << ": No such file or directory\n";
 					}
 				}
 				else
