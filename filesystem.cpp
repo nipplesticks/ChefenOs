@@ -102,6 +102,8 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 				mMemblockDevice.writeBlock(fileNode->getHDDadress(i + 2), buffers[i]);
 			}
 
+			fileNode->setDataSize(sizeInBytes);
+
 			// Now is it time to write the fileNode to disk and parentNode
 			currentHolder->lockFirstAvailableBlock();
 
@@ -299,6 +301,7 @@ std::string FileSystem::lol()
 /* Lists all available entires in current INode*/
 bool FileSystem::listCopy(char* filepath, std::string& holder)
 {
+
 	Inode* tempNode = nullptr;
 
 	if (filepath)
@@ -315,16 +318,27 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 
 	int nrOfBlocks = currentInode->getNrOfBlocks();
 	int * blockIndexes = new int[nrOfBlocks];
-
+	holder += "Listing directory\nType\t\tName\t\tPermissions\t\tSize\n";
 	for (int i = 2; i < nrOfBlocks; i++)
 	{
 		blockIndexes[i] = tempNode->getHDDadress(i);
 		if (tempNode->isBlockUsed(i))
 		{
 			Inode printer(mMemblockDevice.readBlock(blockIndexes[i]));
+			const char* type = printer.getType();
+			if (type[0] == '/')
+				holder += "DIR\t\t";
+			else
+				holder += "FILE\t\t";
+			
 			holder += printer.getName();
-			// Folders print / and files dont
-			if(printer.getType()[0] =='/') holder += printer.getType();
+			holder += "\t\t";
+
+			// Permisions
+			holder += "\t\t\t";
+
+			// Size 
+			holder += std::to_string(printer.getDataSize()) + " byte"; 
 			holder += "\n";
 		}
 		else

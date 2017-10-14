@@ -4,6 +4,7 @@ Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc)
 	: type(type), name(name), hddLoc(hddLoc), parentHDDLoc(parentHDDLoc),
 	nrOfBlocks(12), timestamp(time(0))
 {	
+	dataSize = 0;
 	blockIndexes[0] = this->hddLoc;
 	usedBlocks[0] = true;
 
@@ -35,10 +36,11 @@ Inode::Inode(const Block & block)
 	name = new char[size];
 	for (int i = 0; i < StringConverter.size(); i++)
 		name[i] = StringConverter[i];
-	name[size - 1] = '\0';;
+	name[size - 1] = '\0';
 
 	data >> hddLoc;
 	data >> parentHDDLoc;
+	data >> dataSize;
 	data >> timestamp;
 	data >> nrOfBlocks;
 	for (int i = 0; i < nrOfBlocks; i++)
@@ -73,6 +75,11 @@ bool Inode::setBlock(int adress)
 	}
 
 	return wrote;
+}
+
+void Inode::setDataSize(int size)
+{
+	dataSize = size;
 }
 
 /* Return true if there is a block to lock*/
@@ -123,6 +130,7 @@ char * Inode::toCharArray() const
 		copyCharArrln(buffert, buffertIndex, name) &&
 		copyIntln(buffert, buffertIndex, hddLoc) &&
 		copyIntln(buffert, buffertIndex, parentHDDLoc) &&
+		copyIntln(buffert, buffertIndex, dataSize) &&
 		copyIntln(buffert, buffertIndex, timestamp) &&
 		copyIntln(buffert, buffertIndex, nrOfBlocks))
 	{
@@ -288,6 +296,10 @@ const char * Inode::getType() const
 const char * Inode::getName() const
 {
 	return name;
+}
+int Inode::getDataSize() const
+{
+	return dataSize;
 }
 /* Return true if block is in use */
 bool Inode::isBlockUsed(int index) const

@@ -18,6 +18,7 @@ private:
 	int nrOfBlocks;
 	bool usedBlocks[12];
 	int blockIndexes[12];
+	int dataSize;
 
 public:
 	Inode(char * type, char * name, int hddLoc, int parentHDDLoc);
@@ -38,6 +39,7 @@ public:
 	time_t getTimeStamp() const;
 	const char* getType() const;
 	const char* getName() const;
+	int getDataSize() const;
 
 	/* Return true if block is in use */
 	bool isBlockUsed(int index)  const;
@@ -49,7 +51,7 @@ public:
 	int getHDDadress(int index) const;
 
 	bool setBlock(int adress);
-
+	void setDataSize(int size);
 	/* Returns all the information from this node to a char*
 	   REMEMBER TO DELETE */
 	char* toCharArray() const;

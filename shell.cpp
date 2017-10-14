@@ -1,5 +1,4 @@
-﻿
-#include <iostream>
+﻿#include <iostream>
 #include <sstream>
 #include<string>
 #include "filesystem.h"
@@ -36,6 +35,7 @@ int main(void) {
 	char * target = nullptr;
 	char * destination = nullptr;
 	std::string content;
+	const char* option;
     do {
         std::cout << user << ":" << fs.pwd() << "\n$ ";
 		getline(std::cin, userCommand);
