@@ -102,13 +102,20 @@ int main(void) {
 				if (target)
 				{
 					std::string fileContent;
-					if (fs.getFileContent(target,fileContent))
+					int result = fs.getFileContent(target, fileContent);
+					switch (result)
 					{
-						std::cout << fileContent << std::endl;
-					}
-					else
-					{
+					case -1:
+						std::cout << "cat: " << target << ": Is a directory\n";
+						break;
+					default:
+					case 0:
 						std::cout << "cat: " << target << ": No such file or directory\n";
+						break;
+					case 1:
+						std::cout << fileContent << std::endl;
+						break;
+
 					}
 				}
 				else
@@ -312,7 +319,6 @@ std::string advancedEditor()
 
 	clearScr();
 	std::cout << "\t\t\t\t\tAdvanced Editor - write !wq to save and exit\n";
-	std::cout << content;
 	while (content.length() < 3 || !endCommandFound(content))
 	{
 		std::getline(std::cin, adder);

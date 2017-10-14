@@ -59,9 +59,12 @@ public:
 
 	std::string toTreeFormat() const;
 
-	//Global removal
-	
-	bool getFileContent(char * target, std::string& content) const;
+	/* returnValue meanings:
+	0: file not found
+	1: fileFound
+	-1: its a directory
+	*/
+	int getFileContent(char * target, std::string& content) const;
 
 private:
 	// Help functions

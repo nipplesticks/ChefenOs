@@ -495,53 +495,47 @@ std::string FileSystem::toTreeFormat() const
 	return returnString;
 }
 
-bool FileSystem::getFileContent(char * target, std::string& content) const
+/* returnValue meanings:
+0: file not found
+1: fileFound
+-1: its a directory
+*/
+int FileSystem::getFileContent(char * target, std::string& content) const
 {
-	bool found = false;
-	int arraySize = 0;
-	std::string* folders;
-	Inode * temp = pathSolver(target, folders, arraySize);
 
-	std::string filePathBeforeFile;
-	for (int i = 0; i < arraySize - 1; i++)
-	{
-		filePathBeforeFile += "/" + folders[i];
-	}
+	int returnValue = 0;
 
-	Inode* currentHolder = nullptr;
-	if (arraySize - 1 == 0)
-	{
-		currentHolder = temp;
-	}
-	else
-	{
-
-		char* fpbf_p = stringToCharP(filePathBeforeFile);
-		currentHolder = walkDir(target);
-		delete temp;
-		delete[] fpbf_p;
-
-	}
+	Inode* currentHolder = walkDir(target);
+	
 	if (currentHolder)
 	{
-		int nrOfBlocks = currentHolder->getNrOfBlocks();
-		for (int i = 2; i < nrOfBlocks; i++)
+		if (currentHolder->getType()[0] != '/')
 		{
-			if (currentHolder->isBlockUsed(i))
+
+			int nrOfBlocks = currentHolder->getNrOfBlocks();
+			for (int i = 2; i < nrOfBlocks; i++)
 			{
-				Block partOfFile = mMemblockDevice.readBlock(currentHolder->getHDDadress(i));
-				for (int contentIndex = 0; (contentIndex < 512) && partOfFile.toString()[contentIndex] != '\0'; contentIndex++)
+				if (currentHolder->isBlockUsed(i))
 				{
-					content += partOfFile.toString()[contentIndex];
+					Block partOfFile = mMemblockDevice.readBlock(currentHolder->getHDDadress(i));
+					for (int contentIndex = 0; (contentIndex < 512) && partOfFile.toString()[contentIndex] != '\0'; contentIndex++)
+					{
+						std::string blockContent = partOfFile.toString();
+						content += blockContent[contentIndex];
+					}
+					returnValue = 1;
 				}
 			}
+			content += '\n';
 		}
-		found = true;
-		content += '\n';
+		else
+		{
+			returnValue = -1;
+		}
+		
 	}
-	delete[] folders;
 	delete currentHolder;
-	return found;
+	return returnValue;
 }
 
 bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
