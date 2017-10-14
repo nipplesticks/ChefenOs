@@ -24,6 +24,8 @@ public:
     /* This function creates a file in the filesystem */
 	bool createFile(char * fileName, const char* content, int sizeInBytes);
 
+	bool append(char* sFP, char* dFP);
+
     /* Creates a folder in the filesystem */
 	bool createFolder(char* folderName);
 

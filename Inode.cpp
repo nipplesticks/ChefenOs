@@ -324,6 +324,16 @@ int Inode::getNrOfFreeBlocks() const
 	return counter;
 }
 
+int Inode::getNrOfInUseBlocks() const
+{
+	int counter = 0;
+	for (int i = 0; i < nrOfBlocks; i++)
+	{
+		if (usedBlocks[i])counter++;
+	}
+	return counter;
+}
+
 int Inode::getHDDadress(int index) const
 {
 	if(index != -1)

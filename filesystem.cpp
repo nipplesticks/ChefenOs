@@ -139,6 +139,85 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 	return isCreated;
 	
 }
+/* IS NOT MEMORY EFFICIENT!!*/
+bool FileSystem::append(char * sFP, char * dFP)
+{
+	bool result = false;
+	Inode* sourceFile = walkDir(sFP);
+	Inode* destFile = walkDir(dFP);
+
+	if (sourceFile && destFile)
+	{
+		
+		int nrOfBlocksNeeded	= sourceFile->getNrOfInUseBlocks() - 2,
+			bufferSize			= nrOfBlocksNeeded * 512,
+			bufferIndex			= 0;
+		
+		char* buffer1 = new char[bufferSize];
+		// Fill buffer1 with sourceFile's content
+		int nrOfBlocks = sourceFile->getNrOfBlocks();
+		for (int i = 2; i < nrOfBlocks && bufferIndex != bufferSize; i++)
+		{
+			if (sourceFile->isBlockUsed(i))
+			{
+				Block curBlock = mMemblockDevice.readBlock(sourceFile->getHDDadress(i));
+				for (int k = 0; k < 512 && curBlock[k] != '\0'; k++)
+				{
+					buffer1[bufferIndex] = '\0';
+					buffer1[bufferIndex++] = curBlock[k];
+				}
+				
+			}
+		}
+		buffer1[bufferIndex] = '\0';
+		if (destFile->getNrOfFreeBlocks() > nrOfBlocksNeeded)
+		{
+			result = true;
+			char** buffer2 = new char*[nrOfBlocksNeeded];
+			for (int i = 0; i < nrOfBlocksNeeded; i++)
+			{
+				buffer2[i] = new char[512];
+				int k = 0;
+				for (; k < 512 && buffer1[k+(i*512)] != '\0'; k++)
+				{
+					buffer2[i][k] = '\0';
+					buffer2[i][k] = buffer1[k + (i * 512)];
+				}
+				if(k == 512) 
+					buffer2[i][k-1] = '\0';
+				else
+					buffer2[i][k] = '\0';
+			}
+			int blockCounter = 0;
+			for (int i = 2; i < nrOfBlocks && blockCounter != nrOfBlocksNeeded; i++)
+			{
+				if (!destFile->isBlockUsed(i))
+				{
+					destFile->lockBlockAt(i);
+					mMemblockDevice.writeBlock(destFile->getHDDadress(i), buffer2[blockCounter++]);
+				}
+			}
+			destFile->setDataSize(destFile->getDataSize() + bufferIndex);
+			char* fileNodeContent = destFile->toCharArray();
+
+			mMemblockDevice.writeBlock(destFile->getHDDLoc(), fileNodeContent);
+			
+			delete[] fileNodeContent;
+			
+			for (int i = 0; i < nrOfBlocksNeeded; i++)
+				delete[] buffer2[i];
+			
+			delete[] buffer2;
+			
+			
+		}
+
+		delete[] buffer1;
+	}
+	if (sourceFile) delete sourceFile;
+	if (destFile) delete destFile;
+	return result;
+}
 
 /* Creates a folder entry in the current INode
 - Supports multiple slashes
@@ -318,24 +397,25 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 
 	int nrOfBlocks = currentInode->getNrOfBlocks();
 	int * blockIndexes = new int[nrOfBlocks];
-	holder += "Listing directory\nType\t\tName\t\tPermissions\t\tSize\n";
+	holder += "Listing directory\nName\t\tType\t\tPermissions\t\tSize\n";
 	for (int i = 2; i < nrOfBlocks; i++)
 	{
 		blockIndexes[i] = tempNode->getHDDadress(i);
 		if (tempNode->isBlockUsed(i))
 		{
 			Inode printer(mMemblockDevice.readBlock(blockIndexes[i]));
+			// Name
+			holder += printer.getName();
+			holder += "\t\t";
+			
+			// Type
 			const char* type = printer.getType();
 			if (type[0] == '/')
 				holder += "DIR\t\t";
 			else
 				holder += "FILE\t\t";
-			
-			holder += printer.getName();
-			holder += "\t\t";
-
 			// Permisions
-			holder += "\t\t\t";
+			holder += "\t\t";
 
 			// Size 
 			holder += std::to_string(printer.getDataSize()) + " byte"; 

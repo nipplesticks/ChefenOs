@@ -46,7 +46,8 @@ public:
 	/* Retrun number of blocks */
 	int getNrOfBlocks() const;
 	/* Return number of blocks not in use */
-	int getNrOfFreeBlocks() const;
+	int getNrOfFreeBlocks() const;	
+	int getNrOfInUseBlocks() const;
 	/* Returns adress to the hdd*/
 	int getHDDadress(int index) const;
 

@@ -3,9 +3,7 @@
 
 void MemBlockDevice::init()
 {
-	// Creates index linkedlist
-	headNode = buildList();
-	
+	headNode = nullptr;
 	reset();
 }
 
@@ -94,7 +92,12 @@ Block MemBlockDevice::readBlock(int blockNr) const {
 }
 
 /* Resets all the blocks and creates the root directory*/
-void MemBlockDevice::reset() {
+void MemBlockDevice::reset() 
+{
+	if(headNode) while (getFreeHDDIndex() != -1);
+	// Creates index linkedlist
+	headNode = buildList();
+
     for (int i = 0; i < this->nrOfBlocks; ++i) {
         this->memBlocks[i].reset('0');
     }

@@ -185,6 +185,22 @@ int main(void) {
 				}
                 break;
             case 9: // append
+				target = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
+				destination = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
+				if (target && destination)
+				{
+					if (!fs.append(target, destination))
+					{
+						std::cout << "append: cannot access '" << target << " or " << destination << "': No such file or directory\n";
+					}
+					delete[] target;
+					delete[] destination;
+				}
+				else
+				{
+					std::cout << "append <target> <destination>\n";
+				}
+				break;
                 break;
             case 10: // mv
                 break;
