@@ -549,6 +549,7 @@ std::string help() {
     helpStr += "* pwd:                              Get current working directory\n";
 	helpStr += "* clear:                            Clears the terminal window\n";
 	helpStr += "* tree:                             Lists contents of directories in a tree-like format\n";
+	helpStr += "* chmod <+/-rw> <file/directory>    Change permission of a directory or file\n";
     helpStr += "* help:                             Prints this help screen\n";
     return helpStr;
 }
