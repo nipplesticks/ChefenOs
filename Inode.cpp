@@ -11,6 +11,9 @@ Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc)
 	blockIndexes[1] = this->parentHDDLoc;
 	usedBlocks[1] = true;
 
+	permissions[0] = true;
+	permissions[1] = true;
+
 	for (int i = 2; i < nrOfBlocks; i++)
 	{
 		blockIndexes[i] = NOT_USED;
@@ -41,6 +44,8 @@ Inode::Inode(const Block & block)
 	data >> hddLoc;
 	data >> parentHDDLoc;
 	data >> dataSize;
+	data >> permissions[0];
+	data >> permissions[1];
 	data >> timestamp;
 	data >> nrOfBlocks;
 	for (int i = 0; i < nrOfBlocks; i++)
@@ -80,6 +85,16 @@ bool Inode::setBlock(int adress)
 void Inode::setDataSize(int size)
 {
 	dataSize = size;
+}
+
+void Inode::setPermRead(bool read)
+{
+	permissions[0] = read;
+}
+
+void Inode::setPermWrite(bool write)
+{
+	permissions[1] = write;
 }
 
 /* Return true if there is a block to lock*/
@@ -131,6 +146,8 @@ char * Inode::toCharArray() const
 		copyIntln(buffert, buffertIndex, hddLoc) &&
 		copyIntln(buffert, buffertIndex, parentHDDLoc) &&
 		copyIntln(buffert, buffertIndex, dataSize) &&
+		copyIntln(buffert, buffertIndex, permissions[0]) &&
+		copyIntln(buffert, buffertIndex, permissions[1]) &&
 		copyIntln(buffert, buffertIndex, timestamp) &&
 		copyIntln(buffert, buffertIndex, nrOfBlocks))
 	{
@@ -147,6 +164,13 @@ char * Inode::toCharArray() const
 	}
 
 	return buffert;
+}
+std::string Inode::getPermAsString() const
+{
+	std::string returnStr = "";
+	returnStr += (permissions[0]) ? "r" : "-";
+	returnStr += (permissions[1]) ? "w" : "-";
+	return returnStr;
 }
 int Inode::freeBlockInInode()
 {
@@ -193,6 +217,8 @@ void Inode::copy(const Inode & other)
 	hddLoc = other.hddLoc;
 	parentHDDLoc = other.parentHDDLoc;
 	dataSize = other.dataSize;
+	permissions[0] = other.permissions[0];
+	permissions[1] = other.permissions[1];
 	timestamp = other.timestamp;
 	nrOfBlocks = other.nrOfBlocks;
 	for(int i = 0; i < nrOfBlocks;i++)
@@ -300,6 +326,14 @@ const char * Inode::getName() const
 int Inode::getDataSize() const
 {
 	return dataSize;
+}
+bool Inode::getRead() const
+{
+	return permissions[0];
+}
+bool Inode::getWrite() const
+{
+	return permissions[1];
 }
 /* Return true if block is in use */
 bool Inode::isBlockUsed(int index) const

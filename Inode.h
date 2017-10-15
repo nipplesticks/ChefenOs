@@ -19,6 +19,7 @@ private:
 	bool usedBlocks[12];
 	int blockIndexes[12];
 	int dataSize;
+	bool permissions[2];
 
 public:
 	Inode(char * type, char * name, int hddLoc, int parentHDDLoc);
@@ -40,6 +41,8 @@ public:
 	const char* getType() const;
 	const char* getName() const;
 	int getDataSize() const;
+	bool getRead() const;
+	bool getWrite() const;
 
 	/* Return true if block is in use */
 	bool isBlockUsed(int index)  const;
@@ -53,9 +56,12 @@ public:
 
 	bool setBlock(int adress);
 	void setDataSize(int size);
+	void setPermRead(bool read);
+	void setPermWrite(bool write);
 	/* Returns all the information from this node to a char*
 	   REMEMBER TO DELETE */
 	char* toCharArray() const;
+	std::string getPermAsString() const;
 	
 	/* Retun free block within the Inode*/
 	int freeBlockInInode();
