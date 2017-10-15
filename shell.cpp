@@ -9,11 +9,12 @@
 
 
 const int MAXCOMMANDS = 8;
-const int NUMAVAILABLECOMMANDS = 17;
+const int NUMAVAILABLECOMMANDS = 18;
 
 std::string availableCommands[NUMAVAILABLECOMMANDS] = {
     "quit","format","ls","create","cat","createImage","restoreImage",
-    "rm","cp","append","mv","mkdir","cd","pwd","help","clear", "tree"
+    "rm","cp","append","mv","mkdir","cd","pwd","help","clear", "tree",
+	"chmod"
 };
 
 /* Takes usercommand from input and returns number of commands, commands are stored in strArr[] */
@@ -22,6 +23,30 @@ int findCommand(std::string &command);
 bool quit();
 char* getCommandsAsChar(const std::string &command, int expectedCommands, int nrOfCommands);
 void clearScr();
+
+void list(std::string  commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void createFile(std::string  commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void getContent(std::string  commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void createImage(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void restoreImage(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void remove(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void copy(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void append(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void move(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void makeDir(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void changeDir(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
+
+void chmod(std::string commandArr[8], int nrOfCommands, FileSystem &fs);
 
 std::string advancedEditor();
 
@@ -34,12 +59,9 @@ int main(void) {
 	FileSystem fs;
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed
-	std::string currentDir = fs.currentDir();    // current directory, used for output
     bool bRun = true;
 
-	char * target = nullptr;
-	char * destination = nullptr;
-	std::string content;
+	
 	const char* option;
     do {
         std::cout << user << ":" << fs.pwd() << "\n$ ";
@@ -58,199 +80,37 @@ int main(void) {
 				fs.formatHDD();
                 break;
             case 2: // ls E DONE
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (fs.listCopy(target, content))
-					std::cout << content << std::endl;
-				else
-					std::cout << "ls: cannot access '" << target << "': No such file or directory\n";
-				content = "";
-				delete[] target;
+				list(commandArr, nrOfCommands, fs);
                 break;
             case 3: // create E
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (target)
-				{
-					/*Wow! Such advanced! Much wow!
-					    ─────────▄──────────────▄
-						────────▌▒█───────────▄▀▒▌
-						────────▌▒▒▀▄───────▄▀▒▒▒▐
-						───────▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐
-						─────▄▄▀▒▒▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐
-						───▄▀▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀██▀▒▌
-						──▐▒▒▒▄▄▄▒▒▒▒▒▒▒▒▒▒▒▒▒▀▄▒▒▌
-						──▌▒▒▐▄█▀▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐
-						─▐▒▒▒▒▒▒▒▒▒▒▒▌██▀▒▒▒▒▒▒▒▒▀▄▌
-						─▌▒▀▄██▄▒▒▒▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
-						─▌▀▐▄█▄█▌▄▒▀▒▒▒▒▒▒░░░░░░▒▒▒▐
-						▐▒▀▐▀▐▀▒▒▄▄▒▄▒▒▒▒▒░░░░░░▒▒▒▒▌
-						▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒░░░░░░▒▒▒▐
-						─▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
-						─▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▐
-						──▀▄▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▄▒▒▒▒▌
-						────▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀
-						───▐▀▒▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀
-						──▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀▀*/
-					std::string content = advancedEditor();
-					if (!fs.createFile(target, content.c_str(), content.length()))
-					{
-						std::cout << "create: cannot write file '" << target << "': File already exist\n";
-					}
-				}
-				else
-				{
-					std::cout << "createImage <folderpath>\n";
-				}
-				delete[] target;
+				createFile(commandArr, nrOfCommands, fs);
                 break;
             case 4: // cat E
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (target)
-				{
-					std::string fileContent;
-					int result = fs.getFileContent(target, fileContent);
-					switch (result)
-					{
-					case -1:
-						std::cout << "cat: " << target << ": Is a directory\n";
-						break;
-					default:
-					case 0:
-						std::cout << "cat: " << target << ": No such file or directory\n";
-						break;
-					case 1:
-						std::cout << fileContent << std::endl;
-						break;
-
-					}
-				}
-				else
-				{
-					std::cout << "cat <filepath>" << std::endl;
-				}
-				delete[] target;
-
+				getContent(commandArr, nrOfCommands, fs);
                 break;
             case 5: // createImage E DONE
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (target)
-				{
-					fs.createImage(target);
-					delete[] target;
-				}
-				else
-				{
-					std::cout << "createImage <folderpath>\n";
-				}
+				createImage(commandArr, nrOfCommands, fs);
                 break;
             case 6: // restoreImage E DONE
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (target)
-				{
-					if (!fs.readImage(target))
-					{
-						std::cout << "restoreImage: cannot read '" << target << "': No such file\n";
-					}
-					delete[] target;
-				}
-				else
-				{
-					std::cout << "restoreImage <folderpath>\n";
-				}
+				restoreImage(commandArr, nrOfCommands, fs);
                 break;
             case 7: // rm E
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (target)
-				{
-					if (!fs.remove(target))
-					{
-						std::cout << "rm: cannot access '" << target << "': No such file or directory\n";
-					}
-					delete[] target;
-				}
-				else
-				{
-					std::cout << "rm <path>\n";
-				}
+				remove(commandArr, nrOfCommands, fs);
                 break;
             case 8: // cp E DONE
-				target = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
-				destination = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
-				if (target && destination)
-				{
-					if (!fs.copyTarget(target, destination))
-					{
-						std::cout << "cp: cannot access '" << target << " or " << destination << "': No such file or directory\n";
-					}
-					delete[] target;
-					delete[] destination;
-				}
-				else
-				{
-					std::cout << "cp <target> <destination>\n";
-				}
+				copy(commandArr, nrOfCommands, fs);
                 break;
             case 9: // append
-				target = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
-				destination = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
-				if (target && destination)
-				{
-					if (!fs.append(target, destination))
-					{
-						std::cout << "append: cannot access '" << target << " or " << destination << "': No such file or directory\n";
-					}
-					delete[] target;
-					delete[] destination;
-				}
-				else
-				{
-					std::cout << "append <target> <destination>\n";
-				}
+				append(commandArr, nrOfCommands, fs);
 				break;
             case 10: // mv
-				target = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
-				destination = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
-				if (target && destination)
-				{
-					if (!fs.move(target, destination))
-					{
-						std::cout << "mv: cannot access '" << target << " or " << destination << "': No such file or directory\n";
-					}
-					delete[] target;
-					delete[] destination;
-				}
-				else
-				{
-					std::cout << "mv <target> <destination>\n";
-				}
+				move(commandArr, nrOfCommands, fs);
 				break;
-                
             case 11: // mkdir E	DONE		
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (target != nullptr)
-				{
-					if (!fs.createFolder(target))
-						std::cout << "mkdir: cannot create directory '" << target << "': File exists\n";
-					delete[] target;
-				}
-				else
-				{
-					std::cout << "mkdir <folderpath>" << std::endl;
-				}
-				
+				makeDir(commandArr, nrOfCommands, fs);
                 break;
             case 12: // cd E DONE
-				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
-				if (target != nullptr)
-				{
-					if (!fs.changeDir(target))
-						std::cout << "bash: cd: " << target << ": No such file or directory\n";
-					delete[] target;
-					currentDir = fs.currentDir();
-				}
-				else
-				{
-					std::cout << "cd <filepath>" << std::endl;
-				}
+				changeDir(commandArr, nrOfCommands, fs);
                 break; 
             case 13: // pwd E DONE
 				std::cout << fs.pwd() << std::endl;
@@ -264,6 +124,9 @@ int main(void) {
 			case 16: // tree
 				std::cout << fs.toTreeFormat() << std::endl;
 				break;
+			case 17: // chmod
+				chmod(commandArr, nrOfCommands, fs);
+				break;
             default:
                 std::cout << "Unknown command: " << commandArr[0] << std::endl;
             }
@@ -272,10 +135,358 @@ int main(void) {
 
     return 0;
 }
+void chmod(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char * arg1 = getCommandsAsChar(commandArr[1], 3, nrOfCommands); // Accessrights
+	char * arg2 = getCommandsAsChar(commandArr[2], 3, nrOfCommands); // Filepath
+	if (arg1 && arg2)
+	{
+		int returnValue = fs.chmod(arg1, arg2);
+		if (returnValue < 0)
+		{
+			switch (returnValue)
+			{
+			case -1:
+				std::cout << "chmod: " << arg2 << ": No such file or directory\n";
+				break;
+			case -2:
+				std::cout << "chmod: " << arg1 << ": Invalid permissions\n";
+				break;
+			}
+		}
+		delete[] arg1;
+		delete[] arg2;
+	}
+	else
+	{
+		std::cout << "chmod <accessrights> <filepath>\n";
+	}
+}
+
+void changeDir(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char *arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	if (arg1 != nullptr)
+	{
+		int returnValue = fs.changeDir(arg1);
+		if (returnValue < 1)
+		{
+			switch (returnValue)
+			{
+			case 0:
+				std::cout << "cd: " << arg1 << ": No such file or directory\n";
+				break;
+			case -1:
+				std::cout << "cd: " << arg1 << ": Read permission denied\n";
+				break;
+			}
+		}
+		delete[] arg1;
+	}
+	else
+	{
+		std::cout << "cd <filepath>" << std::endl;
+	}
+}
+
+void makeDir(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	if (arg1 != nullptr)
+	{
+		int returnValue = fs.createFolder(arg1);
+		if (returnValue < 1)
+		{
+			switch (returnValue)
+			{
+			case 0:
+				std::cout << "mkdir: cannot create directory '" << arg1 << "': File exists\n";
+				break;
+			case -1:
+				std::cout << "mkdir: cannot create directory '" << arg1 << "': Parent folder read denied\n";
+				break;
+			case -2:
+				std::cout << "mkdir: cannot create directory '" << arg1 << "': Parent folder write denied\n";
+				break;
+			}
+		}
+		delete[] arg1;
+	}
+	else
+	{
+		std::cout << "mkdir <folderpath>" << std::endl;
+	}
+
+}
+
+void move(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
+	char* arg2 = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
+	if (arg1 && arg2)
+	{
+		int returnValue = fs.move(arg1, arg2);
+		if (returnValue < 1)
+		{
+			switch (returnValue)
+			{
+			case 0:
+				std::cout << "mv: cannot access '" << arg1 << " or " << arg2 << "': No such file or directory\n";
+				break;
+			case -1:
+				std::cout << "mv: " << arg1 << ": Permission to read denied\n";
+				break;
+			case -2:
+				std::cout << "mv: " << arg1 << ": Permission to write denied\n";
+				break;
+			case -3:
+				std::cout << "mv: " << arg2 << ": Permission to read denied\n";
+				break;
+			case -4:
+				std::cout << "mv: " << arg2 << ": Permission to write denied\n";
+				break;
+
+			}
+		}
+		delete[] arg1;
+		delete[] arg2;
+	}
+	else
+	{
+		std::cout << "mv <target> <destination>\n";
+	}
+}
+
+void append(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
+	char* arg2 = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
+	if (arg1 && arg2)
+	{
+		int returnValue = fs.append(arg1, arg2);
+		if (returnValue < 1)
+		{
+			switch (returnValue)
+			{
+			case 0:
+				std::cout << "append: cannot access '" << arg1 << " or " << arg2 << "': No such file or directory\n";
+				break;
+			case -1:
+				std::cout << "append: " << arg1 << ": Permission to read denied\n";
+				break;
+			case -2:
+				std::cout << "append: " << arg2 << ": Permission to read denied\n";
+				break;
+			case -3:
+				std::cout << "append: " << arg2 << ": Permission to write denied\n";
+				break;
+
+			}
+		}
+		delete[] arg1;
+		delete[] arg2;
+	}
+	else
+	{
+		std::cout << "append <target> <destination>\n";
+	}
+}
+
+void copy(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
+	char* arg2 = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
+	if (arg1 && arg2)
+	{
+		int returnValue = fs.copyTarget(arg1, arg2);
+		if (returnValue < 1)
+		{
+			switch (returnValue)
+			{
+			case 0:
+				std::cout << "cp: cannot access '" << arg1 << " or " << arg2 << "': No such file or directory\n";
+				break;
+			case -1:
+				std::cout << "cp: " << arg1 << ": Permission to read denied\n";
+				break;
+			case -2:
+				std::cout << "cp: " << arg1 << ": Permission to write denied\n";
+				break;
+			case -3:
+				std::cout << "cp: " << arg2 << ": Permission to read denied\n";
+				break;
+			case -4:
+				std::cout << "cp: " << arg2 << ": Permission to write denied\n";
+				break;
+
+			}
+		}
+		delete[] arg1;
+		delete[] arg2;
+	}
+	else
+	{
+		std::cout << "cp <target> <destination>\n";
+	}
+}
+
+void remove(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	if (arg1)
+	{
+		int returnValue = fs.remove(arg1);
+		if (returnValue <  1)
+		{
+			switch (returnValue)
+			{
+			case 0:
+				std::cout << "rm: cannot access '" << arg1 << "': No such file or directory\n";
+				break;
+			case -1:
+				std::cout << "rm: " << arg1 << ": Permission to read denied\n";
+				break;
+			}
+		}
+		delete[] arg1;
+	}
+	else
+	{
+		std::cout << "rm <path>\n";
+	}
+}
+
+void restoreImage(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	if (arg1)
+	{
+		if (!fs.readImage(arg1))
+		{
+			std::cout << "restoreImage: cannot read '" << arg1 << "': No such file\n";
+		}
+		delete[] arg1;
+	}
+	else
+	{
+		std::cout << "restoreImage <folderpath>\n";
+	}
+}
+
+void createImage(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	if (arg1)
+	{
+		fs.createImage(arg1);
+		delete[] arg1;
+	}
+	else
+	{
+		std::cout << "createImage <folderpath>\n";
+	}
+}
+
+void getContent(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	if (arg1)
+	{
+		std::string fileContent;
+		int result = fs.getFileContent(arg1, fileContent);
+		switch (result)
+		{
+		case -2:
+			std::cout << "cat: " << arg1 << ": Permission to read denied\n";
+			break;
+		case -1:
+			std::cout << "cat: " << arg1 << ": Is a directory\n";
+			break;
+		default:
+		case 0:
+			std::cout << "cat: " << arg1 << ": No such file or directory\n";
+			break;
+		case 1:
+			std::cout << fileContent << std::endl;
+			break;
+
+		}
+	}
+	else
+	{
+		std::cout << "cat <filepath>" << std::endl;
+	}
+	delete[] arg1;
+}
+
+void createFile(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	if (arg1)
+	{
+		/*Wow! Such advanced! Much wow!
+		─────────▄──────────────▄
+		────────▌▒█───────────▄▀▒▌
+		────────▌▒▒▀▄───────▄▀▒▒▒▐
+		───────▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐
+		─────▄▄▀▒▒▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐
+		───▄▀▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀██▀▒▌
+		──▐▒▒▒▄▄▄▒▒▒▒▒▒▒▒▒▒▒▒▒▀▄▒▒▌
+		──▌▒▒▐▄█▀▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐
+		─▐▒▒▒▒▒▒▒▒▒▒▒▌██▀▒▒▒▒▒▒▒▒▀▄▌
+		─▌▒▀▄██▄▒▒▒▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
+		─▌▀▐▄█▄█▌▄▒▀▒▒▒▒▒▒░░░░░░▒▒▒▐
+		▐▒▀▐▀▐▀▒▒▄▄▒▄▒▒▒▒▒░░░░░░▒▒▒▒▌
+		▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒░░░░░░▒▒▒▐
+		─▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
+		─▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▐
+		──▀▄▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▄▒▒▒▒▌
+		────▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀
+		───▐▀▒▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀
+		──▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀▀*/
+		std::string content = advancedEditor();
+		int returnValue = fs.createFile(arg1, content.c_str(), content.length());
+		if (returnValue < 1)
+		{
+			switch (returnValue)
+			{
+			case 0:
+				std::cout << "create: cannot write file '" << arg1 << "': File already exist\n";
+				break;
+			case -1:
+				std::cout << "create: cannot write file '" << arg1 << "': Write to folder denied\n";
+				break;
+			case -2:
+				std::cout << "create: cannot write file '" << arg1 << "': Read folder denied\n";
+				break;
+			}
+
+		}
+	}
+	else
+	{
+		std::cout << "createImage <folderpath>\n";
+	}
+	delete[] arg1;
+}
+
+void list(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
+{
+	char* arg1 = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
+	std::string content;
+	if (fs.listCopy(arg1, content))
+		std::cout << content << std::endl;
+	else
+		std::cout << "ls: cannot access '" << arg1 << "': No such file or directory\n";
+	content = "";
+	delete[] arg1;
+}
+
 void clearScr()
 {
 	if (system("clear")) system("cls"); // Funkar både på windows och linux
 }
+
 int parseCommandString(const std::string &userCommand, std::string strArr[]) {
     std::stringstream ssin(userCommand);
     int counter = 0;
@@ -288,6 +499,7 @@ int parseCommandString(const std::string &userCommand, std::string strArr[]) {
     }
     return counter;
 }
+
 int findCommand(std::string &command) {
     int index = -1;
     for (int i = 0; i < NUMAVAILABLECOMMANDS && index == -1; ++i) {
