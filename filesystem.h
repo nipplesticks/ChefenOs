@@ -22,24 +22,24 @@ public:
     */
 	void formatHDD();
     /* This function creates a file in the filesystem */
-	bool createFile(char * fileName, const char* content, int sizeInBytes);
+	int createFile(char * fileName, const char* content, int sizeInBytes);
 
-	bool append(char* sFP, char* dFP);
+	int append(char* sFP, char* dFP);
 
-	bool move(char* sFP, char* dFP);
+	int move(char* sFP, char* dFP);
 
     /* Creates a folder in the filesystem */
-	bool createFolder(char* folderName);
+	int createFolder(char* folderName);
 
 	/*Copy target to destination*/
-	bool copyTarget(char * target, char * destination);
+	int copyTarget(char * target, char * destination);
 
     /* Removes a folder in the filesystem */
 	bool clearFolder(Inode* tbrNode);
 
 	bool removeFile(char* fileName, Inode* parentNode);
 
-	bool remove(char* path);
+	int remove(char* path);
 
 	void createImage(char* folderPath);
 
@@ -56,10 +56,11 @@ public:
 
 	void setCurrentDirStr(const std::string& str, bool remove);
 
-	bool changeDir(char* folderPath);
+	int changeDir(char* folderPath);
 
 	std::string toTreeFormat() const;
-
+	
+	int chmod(char* rights, char* path);
 	/* returnValue meanings:
 	0: file not found
 	1: fileFound

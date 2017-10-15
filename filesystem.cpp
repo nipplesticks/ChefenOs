@@ -17,8 +17,13 @@ void FileSystem::formatHDD()
 	init();
 
 }
-
-bool FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
+/*
+Return 1: Success
+Return 0: failed
+Return -1: ParentNode dont have write permission
+Return -2: ParentNode dont have read permsission
+ */
+int FileSystem::createFile(char * fileName, const char* content, int sizeInBytes)
 {
 	bool isCreated = false;
 
@@ -46,7 +51,20 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 		delete tempNode;
 
 	}
-
+	
+	if (!currentHolder->getWrite())
+	{
+		delete[] folders;
+		delete currentHolder;
+		// MÅSTE KOLLA MINNESLÄCKOR
+		return -1;
+	}
+	if (!currentHolder->getRead())
+	{
+		delete[] folders;
+		delete currentHolder;
+		return -2;
+	}
 	char* nodeType = constChartoChar("file");
 	char* name = stringToCharP(folders[arraySize - 1]);
 
@@ -139,8 +157,15 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 	return isCreated;
 	
 }
-/* IS NOT MEMORY EFFICIENT!!*/
-bool FileSystem::append(char * sFP, char * dFP)
+
+/* 
+Return 1: Success
+Return 0: Failed
+Return -1: sourceFile cant read
+Return -2: destFile cant Read
+Return -3: destFile cant write
+IS NOT MEMORY EFFICIENT!!*/
+int FileSystem::append(char * sFP, char * dFP)
 {
 	bool result = false;
 	Inode* sourceFile = walkDir(sFP);
@@ -148,7 +173,25 @@ bool FileSystem::append(char * sFP, char * dFP)
 
 	if (sourceFile && destFile)
 	{
-		
+		if (!sourceFile->getRead())
+		{
+			delete sourceFile;
+			delete destFile;
+			return -1;
+		}
+		if (!destFile->getRead())
+		{
+			delete sourceFile;
+			delete destFile;
+			return -2;
+		}
+		if (!destFile->getWrite())
+		{
+			delete sourceFile;
+			delete destFile;
+			return -3;
+		}
+
 		int nrOfBlocksNeeded	= sourceFile->getNrOfInUseBlocks() - 2,
 			bufferSize			= nrOfBlocksNeeded * 512,
 			bufferIndex			= 0;
@@ -218,13 +261,20 @@ bool FileSystem::append(char * sFP, char * dFP)
 	if (destFile) delete destFile;
 	return result;
 }
-
-bool FileSystem::move(char * sFP, char * dFP)
+/*
+Return 1: Success
+Return 0: Failed
+Return -1: no read sfp
+Return -2: no write sfp
+Return -3: no read dfp
+Return -4: no write dfp
+*/
+int FileSystem::move(char * sFP, char * dFP)
 {
-	bool result = false;
+	int result = false;
 	
 	result = copyTarget(sFP, dFP); // If the copy target fails, then the destination doesnt exist, its a name change instead
-	if (!result)
+	if (result == 0)
 	{
 		Inode* vetInte = walkDir(sFP);
 		Inode* sourceNode = new Inode(*vetInte);
@@ -263,22 +313,38 @@ bool FileSystem::move(char * sFP, char * dFP)
 /* Creates a folder entry in the current INode
 - Supports multiple slashes
 - Supports relative or absoulte path
+Return 1: success
+Return 0: Failed
+Return -1: parentfolder read denied
+Return -2: parentfolder write denied
 - */
-bool FileSystem::createFolder(char * folderName)
+int FileSystem::createFolder(char * folderName)
 {
 	
 	int arraySize = 0, arrayIndex = 0;
 	std::string *folderNames = nullptr;
 	Inode* currentHolder = nullptr;
 	bool done = false;
-	// 
+	
 	currentHolder = pathSolver(folderName, folderNames, arraySize);
 
 	while (arrayIndex != arraySize)
 	{	
+		if (!currentHolder->getRead())
+		{
+			delete[] folderNames;
+			delete currentHolder;
+			return -1;
+		}
 		// Does there exist a folder with this name in the current directory?
 		if (isNameUnique(folderNames[arrayIndex].c_str(), currentHolder) && folderNames[arrayIndex] != "..")
 		{
+			if (!currentHolder->getWrite())
+			{
+				delete[] folderNames;
+				delete currentHolder;
+				return -2;
+			}
 			int hddWriteIndex = currentHolder->getHDDadress(currentHolder->freeBlockInInode());
 			if (hddWriteIndex != -1)
 			{
@@ -456,7 +522,7 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 			else
 				holder += "FILE\t\t";
 			// Permisions
-			holder += "\t\t";
+			holder += printer.getPermAsString() + "\t\t\t";
 
 			// Size 
 			holder += std::to_string(printer.getDataSize()) + " byte"; 
@@ -588,11 +654,25 @@ void FileSystem::init()
 	currentDirectory = path;
 }
 
-bool FileSystem::changeDir(char * folderPath)
+/*
+Return 1: Success
+Return 0: Failed
+Return -1: No read permission
+*/
+int FileSystem::changeDir(char * folderPath)
 {
+	int result = 0;
 	Inode *tempNode = nullptr;
 	tempNode = walkDir(folderPath);
-	if (tempNode != nullptr) changeCurrentInode(tempNode);
+	if (tempNode != nullptr)
+	{
+		if (!tempNode->getRead())
+		{
+			delete tempNode;
+			return -1;
+		}
+		changeCurrentInode(tempNode);
+	}
 	else return false;
 	return true;
 }
@@ -624,11 +704,65 @@ std::string FileSystem::toTreeFormat() const
 	delete[] counter;
 	return returnString;
 }
+/*	return 1: allt lyckades
+return 0: fil hittades inte
+return -1: invalid rights
+*/
+int FileSystem::chmod(char * rights, char * path)
+{
+	
+	int result = 1;
+	int length = 0;
+	while (rights[length++] != '\0');
+	if (length > 1 && length <= 4)
+	{
+		bool add;
+		bool read = false;
+		bool write = false;
+
+		if (rights[0] == '+' || rights[0] == '-')
+			add = rights[0] == '+';
+		else
+			result = -1;
+
+		for (int i = 1; i < 3; i++)
+		{
+			switch (rights[i])
+			{
+			case 'r':
+				read = true;
+				break;
+			case 'w':
+				write = true;
+				break;
+			}
+		}
+		Inode* node = walkDir(path);
+		if (node != nullptr)
+		{
+			if (read) node->setPermRead(add);
+			if (write) node->setPermWrite(add);
+
+			char* nodeContent = node->toCharArray();
+			mMemblockDevice.writeBlock(node->getHDDLoc(), nodeContent);
+			delete[] nodeContent;
+
+			delete node;
+		}
+		else
+			result = -1;
+	}
+	else
+		result = -2;
+	
+	return result;
+}
 
 /* returnValue meanings:
 0: file not found
 1: fileFound
 -1: its a directory
+-2: No permission
 */
 int FileSystem::getFileContent(char * target, std::string& content) const
 {
@@ -638,30 +772,36 @@ int FileSystem::getFileContent(char * target, std::string& content) const
 	
 	if (currentHolder)
 	{
-		if (currentHolder->getType()[0] != '/')
-		{
-
-			int nrOfBlocks = currentHolder->getNrOfBlocks();
-			for (int i = 2; i < nrOfBlocks; i++)
-			{
-				if (currentHolder->isBlockUsed(i))
-				{
-					Block partOfFile = mMemblockDevice.readBlock(currentHolder->getHDDadress(i));
-					for (int contentIndex = 0; (contentIndex < 512) && partOfFile.toString()[contentIndex] != '\0'; contentIndex++)
-					{
-						std::string blockContent = partOfFile.toString();
-						content += blockContent[contentIndex];
-					}
-					returnValue = 1;
-				}
-			}
-			content += '\n';
-		}
-		else
-		{
-			returnValue = -1;
-		}
 		
+			if (currentHolder->getType()[0] != '/')
+			{
+				if (currentHolder->getRead())
+				{
+					int nrOfBlocks = currentHolder->getNrOfBlocks();
+					for (int i = 2; i < nrOfBlocks; i++)
+					{
+						if (currentHolder->isBlockUsed(i))
+						{
+							Block partOfFile = mMemblockDevice.readBlock(currentHolder->getHDDadress(i));
+							for (int contentIndex = 0; (contentIndex < 512) && partOfFile.toString()[contentIndex] != '\0'; contentIndex++)
+							{
+								std::string blockContent = partOfFile.toString();
+								content += blockContent[contentIndex];
+							}
+							returnValue = 1;
+						}
+					}
+					content += '\n';
+				}
+				else
+					returnValue = -2;
+			}
+			else
+			{
+				returnValue = -1;
+			}
+		
+	
 	}
 	delete currentHolder;
 	return returnValue;
@@ -712,7 +852,8 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 			{
 				if (targetNode->isBlockUsed(i))
 				{
-					mMemblockDevice.writeBlock(targetNode->getHDDadress(i), blocks[counter++].toString());
+					// NEED TO CHECK IF CAN WRITE
+						mMemblockDevice.writeBlock(targetNode->getHDDadress(i), blocks[counter++].toString());
 				}
 			}
 
@@ -723,6 +864,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 		//Skriv till disk
 		char * targetChar = targetNode->toCharArray();
 		char * destinationChar = destinationNode->toCharArray();
+		// NEED TO CHECK IF CAN WRITE
 		mMemblockDevice.writeBlock(targetNode->getHDDLoc(), targetChar);
 		mMemblockDevice.writeBlock(destinationNode->getHDDLoc(), destinationChar);
 
@@ -746,8 +888,15 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 
 	return returnValue;
 }
-
-bool FileSystem::copyTarget(char * target, char * destination)
+/*
+return 1: Success
+return 0: failed
+return -1: no read targetNode
+return -2: no write targetNode
+return -3: no read destinationNode
+return -4: no write destinationNode
+*/
+int FileSystem::copyTarget(char * target, char * destination)
 {
 	bool result = false;
 	//Få tag i target noden och gör en kopia på den
@@ -757,6 +906,30 @@ bool FileSystem::copyTarget(char * target, char * destination)
 		
 	if (targetNode != nullptr && destinationNode != nullptr)
 	{
+		if (!targetNode->getRead())
+		{
+			delete targetNode;
+			delete destinationNode;
+			return -1;
+		}
+		if (!targetNode->getWrite())
+		{
+			delete targetNode;
+			delete destinationNode;
+			return -2;
+		}
+		if (!destinationNode->getRead())
+		{
+			delete targetNode;
+			delete destinationNode;
+			return -3;
+		}
+		if (!destinationNode->getWrite())
+		{
+			delete targetNode;
+			delete destinationNode;
+			return -4;
+		}
 		if (isNameUnique(targetNode->getName(), destinationNode));
 		{
 			char * name = constChartoChar(targetNode->getName());
@@ -834,7 +1007,7 @@ bool FileSystem::removeFile(char* fileName, Inode* parentNode)
 					// Now we cut the connection with the parent node
 					parentNode->unlockBlockAt(i);
 					char* parentNodeContent = parentNode->toCharArray();
-
+					// NEED TO CHECK IF CAN WRITE
 					mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeContent);
 
 					delete[] parentNodeContent;
@@ -848,12 +1021,18 @@ bool FileSystem::removeFile(char* fileName, Inode* parentNode)
 	return removed;
 }
 
-bool FileSystem::remove(char * path)
+int FileSystem::remove(char * path)
 {
-	bool result = false;
+	int result = 0;
 	Inode* nodeToDelete = walkDir(path);
 	if (nodeToDelete)
 	{
+		if (!nodeToDelete->getRead())
+		{
+			delete nodeToDelete;
+			return -1;
+		}
+	
 		const char* name = nodeToDelete->getName();
 		Block parentBlock = mMemblockDevice.readBlock(nodeToDelete->getParentHDDLoc());
 		Inode* parentNode = new Inode(parentBlock);
@@ -889,7 +1068,7 @@ bool FileSystem::remove(char * path)
 			}
 			
 			char* parentNodeContent = parentNode->toCharArray();
-
+			// NEED TO CHECK IF CAN WRITE
 			mMemblockDevice.writeBlock(parentNode->getHDDLoc(), parentNodeContent);
 
 			delete[] adresses;
@@ -940,7 +1119,7 @@ bool FileSystem::clearFolder(Inode* tbrNode)
 
 				tbrNode->unlockBlockAt(i);
 				char* parentNodeContent = tbrNode->toCharArray();
-
+				// NEED TO CHECK IF CAN WRITE
 				mMemblockDevice.writeBlock(tbrNode->getHDDLoc(), parentNodeContent);
 				
 				delete[] adresses;
@@ -1108,6 +1287,15 @@ void FileSystem::traverseDirectory(Inode * current, int & width, int& undone,boo
 			// To read the name
 			Block curBlock = mMemblockDevice.readBlock(current->getHDDadress(i));
 			Inode* tempNode = new Inode(curBlock);
+			
+			Block parentBlock = mMemblockDevice.readBlock(tempNode->getParentHDDLoc());
+			Inode check(parentBlock);
+			if (!check.getRead())
+			{
+				delete tempNode;
+				return;
+			}
+
 			if (nrOfUsed != 1) // This isnt the last entry
 			{
 				/*if (width)	content += "|   ";*/
