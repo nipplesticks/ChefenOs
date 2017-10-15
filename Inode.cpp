@@ -2,9 +2,9 @@
 
 Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc) 
 	: type(type), name(name), hddLoc(hddLoc), parentHDDLoc(parentHDDLoc),
-	nrOfBlocks(12), timestamp(time(0))
+	nrOfBlocks(12), timestamp(time(0)), dataSize(0)
 {	
-	dataSize = 0;
+
 	blockIndexes[0] = this->hddLoc;
 	usedBlocks[0] = true;
 
@@ -192,7 +192,7 @@ void Inode::copy(const Inode & other)
 
 	hddLoc = other.hddLoc;
 	parentHDDLoc = other.parentHDDLoc;
-
+	dataSize = other.dataSize;
 	timestamp = other.timestamp;
 	nrOfBlocks = other.nrOfBlocks;
 	for(int i = 0; i < nrOfBlocks;i++)
@@ -245,7 +245,7 @@ Inode & Inode::operator=(const Inode & other)
 	return *this;
 }
 
-void Inode::setName(char *& name)
+void Inode::setName(char * name)
 {
 	delete[] this->name;
 	this->name = name;

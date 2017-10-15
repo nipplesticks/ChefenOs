@@ -27,7 +27,7 @@ public:
 
 	~Inode();
 
-	void setName(char *&name);
+	void setName(char *name);
 	void setParentHDDLoc(int adress);
 	void setHDDLoc(int adress);
 	
