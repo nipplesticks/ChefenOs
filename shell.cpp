@@ -1,7 +1,12 @@
-﻿#include <iostream>
+﻿#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
+#include <iostream>
 #include <sstream>
 #include<string>
 #include "filesystem.h"
+
 
 const int MAXCOMMANDS = 8;
 const int NUMAVAILABLECOMMANDS = 17;
@@ -201,9 +206,24 @@ int main(void) {
 					std::cout << "append <target> <destination>\n";
 				}
 				break;
-                break;
             case 10: // mv
-                break;
+				target = getCommandsAsChar(commandArr[1], 3, nrOfCommands);
+				destination = getCommandsAsChar(commandArr[2], 3, nrOfCommands);
+				if (target && destination)
+				{
+					if (!fs.move(target, destination))
+					{
+						std::cout << "mv: cannot access '" << target << " or " << destination << "': No such file or directory\n";
+					}
+					delete[] target;
+					delete[] destination;
+				}
+				else
+				{
+					std::cout << "mv <target> <destination>\n";
+				}
+				break;
+                
             case 11: // mkdir E	DONE		
 				target = getCommandsAsChar(commandArr[1], 2, nrOfCommands);
 				if (target != nullptr)
