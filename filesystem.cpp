@@ -32,7 +32,7 @@ bool FileSystem::createFile(char * fileName, const char* content, int sizeInByte
 		filePathBeforeFile += "/" + folders[i];
 	}
 	Inode* currentHolder = nullptr;
-	if (arraySize - 1 == 0)
+	if (arraySize == 1)
 	{
 		currentHolder = tempNode;
 	}
@@ -216,6 +216,47 @@ bool FileSystem::append(char * sFP, char * dFP)
 	}
 	if (sourceFile) delete sourceFile;
 	if (destFile) delete destFile;
+	return result;
+}
+
+bool FileSystem::move(char * sFP, char * dFP)
+{
+	bool result = false;
+	
+	result = copyTarget(sFP, dFP); // If the copy target fails, then the destination doesnt exist, its a name change instead
+	if (!result)
+	{
+		Inode* vetInte = walkDir(sFP);
+		Inode* sourceNode = new Inode(*vetInte);
+		delete vetInte;
+		if (sourceNode != nullptr)
+		{
+			int arraySize = 0;
+			std::string* folders = seperateSlashes(dFP, arraySize);
+			char* newFileName = nullptr;
+			
+			if (arraySize == 1)
+				newFileName = constChartoChar(folders[0].c_str());
+			else
+				newFileName = constChartoChar(folders[arraySize - 1].c_str());
+
+			sourceNode->setName(newFileName);
+
+			char* fileContent = sourceNode->toCharArray();
+			mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
+			delete[] fileContent;
+
+			delete sourceNode;
+			delete[] folders;
+			result = true;
+		}
+
+	}
+	else
+	{
+		result = remove(sFP);
+	}
+	refreshCurrentInode();
 	return result;
 }
 
@@ -465,10 +506,10 @@ Inode* FileSystem::walkDir(char * folderPath) const
 		if (folder[stringIndex] == "..")
 		{
 			Block curBlock = mMemblockDevice.readBlock(tempNode->getParentHDDLoc());
-			Inode* tempNode2 = new Inode(curBlock);
+			Inode tempNode2(curBlock);
 
 			delete tempNode;
-			tempNode = tempNode2;
+			tempNode = new Inode(tempNode2);
 
 			//Resets and check next folder
 			i = 0;
@@ -485,10 +526,10 @@ Inode* FileSystem::walkDir(char * folderPath) const
 		else if (tempNode->isBlockUsed(i))
 		{
 			Block curBlock = mMemblockDevice.readBlock(tempNode->getHDDadress(i));
-			Inode* tempNode2 = new Inode(curBlock);
+			Inode tempNode2(curBlock);
 
 			//Checking if the folder is in the currentInode table
-			if (!strcmp(tempNode2->getName(), folder[stringIndex].c_str()))
+			if (!strcmp(tempNode2.getName(), folder[stringIndex].c_str()))
 			{
 				//Resets and check next folder
 				i = 0;
@@ -496,12 +537,7 @@ Inode* FileSystem::walkDir(char * folderPath) const
 
 				delete tempNode;
 				tempNode = nullptr;
-				tempNode = tempNode2;
-			}
-			else
-			{
-				delete tempNode2;
-				tempNode2 = nullptr;
+				tempNode = new Inode(tempNode2);
 			}
 		}
 
@@ -596,7 +632,6 @@ std::string FileSystem::toTreeFormat() const
 */
 int FileSystem::getFileContent(char * target, std::string& content) const
 {
-
 	int returnValue = 0;
 
 	Inode* currentHolder = walkDir(target);
@@ -735,11 +770,11 @@ bool FileSystem::copyTarget(char * target, char * destination)
 					fileType += nameAsString[i];
 				for (int i = indexOfDot; i < lengthOfString; i++)
 					nameAsString.pop_back();
-				nameAsString += "_copy" + fileType;
+				//nameAsString += "_copy" + fileType;
 			}
 			else
 			{
-				nameAsString += "_copy";
+				//nameAsString += "_copy";
 			}
 			char * newName = stringToCharP(nameAsString);
 			targetNode->setName(newName);
@@ -758,7 +793,12 @@ bool FileSystem::copyTarget(char * target, char * destination)
 
 		refreshCurrentInode();
 	}
-
+	else
+	{
+		if (targetNode != nullptr) delete targetNode;
+		if (destinationNode != nullptr) delete destinationNode;
+	}
+	
 	return result;
 }
 
@@ -837,10 +877,10 @@ bool FileSystem::remove(char * path)
 			{
 				if (parentNode->isBlockUsed(i))
 				{
-					Block childBlock = mMemblockDevice.readBlock(i);
+					Block childBlock = mMemblockDevice.readBlock(parentNode->getHDDadress(i));
 					Inode temp(childBlock);
 
-					if (!strcmp(name, nodeToDelete->getName()))
+					if (!strcmp(name, temp.getName()))
 					{
 						parentNode->unlockBlockAt(i);
 						result = true;

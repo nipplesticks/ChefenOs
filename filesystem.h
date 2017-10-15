@@ -26,11 +26,10 @@ public:
 
 	bool append(char* sFP, char* dFP);
 
+	bool move(char* sFP, char* dFP);
+
     /* Creates a folder in the filesystem */
 	bool createFolder(char* folderName);
-
-    /* Removes a file in the filesystem */
-    // removeFile(...);
 
 	/*Copy target to destination*/
 	bool copyTarget(char * target, char * destination);
