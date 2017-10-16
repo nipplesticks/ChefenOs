@@ -285,9 +285,30 @@ int FileSystem::move(char * sFP, char * dFP)
 	result = copyTarget(sFP, dFP); // If the copy target fails, then the destination doesnt exist, its a name change instead
 	if (result == 0)
 	{
-		Inode* vetInte = walkDir(sFP);
-		Inode* sourceNode = new Inode(*vetInte);
-		delete vetInte;
+		/* Find path if any */
+		int arraySize = 0;
+		std::string* folders;
+		Inode* tempNode = pathSolver(dFP, folders, arraySize);
+		// Now i know if its relative or absolute path
+		std::string filePathBeforeFile = "";
+		for (int i = 0; i < arraySize - 1; i++)
+		{
+			filePathBeforeFile += "/" + folders[i];
+		}
+		Inode* currentHolder = nullptr;
+		if (arraySize == 1) // if true, no path
+		{
+			currentHolder = tempNode;
+		}
+		else
+		{
+			char* fpbf_p = stringToCharP(filePathBeforeFile);
+			currentHolder = walkDir(fpbf_p);
+			delete[] fpbf_p;
+			delete tempNode;
+		}
+
+		Inode* sourceNode = walkDir(sFP);
 		if (sourceNode != nullptr)
 		{
 			int arraySize = 0;
