@@ -558,7 +558,10 @@ std::string help() {
 
 bool endCommandFound(const std::string &str)
 {
-	return str[str.length() - 4] == '!' && str[str.length() - 3] == 'w' && str[str.length() - 2] == 'q';
+	bool returnValue = false;
+	if (str.length() > 3)
+		returnValue = str[str.length() - 4] == '!' && str[str.length() - 3] == 'w' && str[str.length() - 2] == 'q';
+	return returnValue;
 }
 
 std::string advancedEditor()

@@ -504,16 +504,13 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 
 	int nrOfBlocks = currentInode->getNrOfBlocks();
 	int * blockIndexes = new int[nrOfBlocks];
-	holder += "Listing directory\nName\t\tType\t\tPermissions\t\tSize\n";
+	holder += "Listing directory\nType\t\tPermissions\t\tSize\t\tName\n";
 	for (int i = 2; i < nrOfBlocks; i++)
 	{
 		blockIndexes[i] = tempNode->getHDDadress(i);
 		if (tempNode->isBlockUsed(i))
 		{
 			Inode printer(mMemblockDevice.readBlock(blockIndexes[i]));
-			// Name
-			holder += printer.getName();
-			holder += "\t\t";
 			
 			// Type
 			const char* type = printer.getType();
@@ -525,8 +522,15 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 			holder += printer.getPermAsString() + "\t\t\t";
 
 			// Size 
-			holder += std::to_string(printer.getDataSize()) + " byte"; 
+			holder += std::to_string(printer.getDataSize()) + " byte\t\t"; 
+
+			// Name
+			
+			holder += printer.getName();
+			if (printer.getType()[0] == '/')
+				holder += "/";
 			holder += "\n";
+
 		}
 		else
 		{
@@ -888,6 +892,7 @@ bool FileSystem::copyRecursive(Inode * targetNode, Inode * destinationNode)
 
 	return returnValue;
 }
+
 /*
 return 1: Success
 return 0: failed

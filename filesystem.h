@@ -107,7 +107,6 @@ private:
 	void init();
 
 	bool copyRecursive(Inode * target, Inode * destination);
-
 	
 };
 #endif // FILESYSTEM_H
