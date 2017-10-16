@@ -563,7 +563,10 @@ std::string help() {
 
 bool endCommandFound(const std::string &str)
 {
-	return str[str.length() - 4] == '!' && str[str.length() - 3] == 'w' && str[str.length() - 2] == 'q';
+	bool returnValue = false;
+	if (str.length() > 3)
+		returnValue = str[str.length() - 4] == ':' && str[str.length() - 3] == 'w' && str[str.length() - 2] == 'q';
+	return returnValue;
 }
 
 std::string advancedEditor()
@@ -572,7 +575,7 @@ std::string advancedEditor()
 	std::string adder = "";
 
 	clearScr();
-	std::cout << "\t\t\t\t\tAdvanced Editor - write !wq to save and exit\n";
+	std::cout << "\t\t\t\t\tAdvanced Editor - type \":wq\" to save and exit\n";
 	while (content.length() < 3 || !endCommandFound(content))
 	{
 		std::getline(std::cin, adder);
