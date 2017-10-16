@@ -1,3 +1,7 @@
+/*Created by:
+Henrik Nilsson the Malaysia airlines bug creator
+Magnus Nyqvist the princess of Malaysia airlines
+*/
 #ifndef Inode_H
 #define Inode_H
 #include <ctime>

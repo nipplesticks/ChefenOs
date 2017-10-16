@@ -1,3 +1,7 @@
+/*Created by:
+Henrik Nilsson the Malaysia airlines bug creator
+Magnus Nyqvist the princess of Malaysia airlines
+*/
 #ifndef MEMBLOCKDEVICE_H
 #define MEMBLOCKDEVICE_H
 #include "blockdevice.h"

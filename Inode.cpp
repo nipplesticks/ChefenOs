@@ -1,3 +1,7 @@
+/*Created by:
+Henrik Nilsson the Malaysia airlines bug creator
+Magnus Nyqvist the princess of Malaysia airlines
+*/
 #include "Inode.h"
 
 Inode::Inode(char * type, char * name, int hddLoc, int parentHDDLoc) 
