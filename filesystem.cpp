@@ -489,7 +489,7 @@ bool FileSystem::readImage(char * folderPath)
 	return foundFile;
 }
 
-std::string FileSystem::lol()
+std::string FileSystem::printHDD()
 {
 	return mMemblockDevice.toFile();
 }

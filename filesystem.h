@@ -16,7 +16,7 @@ public:
     FileSystem();
     ~FileSystem();
 	//DEBUG METHOD
-	std::string lol();
+	std::string printHDD();
     /* These API functions need to be implemented
 	   You are free to specify parameter lists and return values
     */
@@ -34,8 +34,6 @@ public:
 	/*Copy target to destination*/
 	int copyTarget(char * target, char * destination);
 
-    /* Removes a folder in the filesystem */
-	bool clearFolder(Inode* tbrNode);
 
 	bool removeFile(char* fileName, Inode* parentNode);
 
@@ -77,6 +75,8 @@ private:
 
 	/* Convert string to char* */
 	char* stringToCharP(const std::string& string) const;
+
+	bool clearFolder(Inode* tbrNode);
 
 	/* Change current Inode */
 	void changeCurrentInode(Inode* newCur);

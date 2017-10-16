@@ -37,7 +37,7 @@ Inode::Inode(const Block & block)
 	data >> StringConverter;
 	size = StringConverter.size() + 1;
 	name = new char[size];
-	for (int i = 0; i < StringConverter.size(); i++)
+	for (size_t i = 0; i < StringConverter.size(); i++)
 		name[i] = StringConverter[i];
 	name[size - 1] = '\0';
 
@@ -148,7 +148,7 @@ char * Inode::toCharArray() const
 		copyIntln(buffert, buffertIndex, dataSize) &&
 		copyIntln(buffert, buffertIndex, permissions[0]) &&
 		copyIntln(buffert, buffertIndex, permissions[1]) &&
-		copyIntln(buffert, buffertIndex, timestamp) &&
+		copyIntln(buffert, buffertIndex, (int)timestamp) &&
 		copyIntln(buffert, buffertIndex, nrOfBlocks))
 	{
 		for (int i = 0; i < nrOfBlocks; i++)
