@@ -622,10 +622,6 @@ void FileSystem::init()
 	// Initilize root directory
 	currentInode = new Inode(mMemblockDevice.readBlock(0));
 
-	std::string path = currentInode->getName();
-	path += currentInode->getType();
-
-	currentDirectory = path;
 }
 
 /*
@@ -1252,30 +1248,6 @@ std::string * FileSystem::seperateSlashes(char * filepath, int & size) const
 	return directories;
 }
 
-int FileSystem::getIndexOfNodeWithName(const char * name, const Inode * inode) const
-{
-	//Read available blocks and store names
-	int returnIndex = -1;
-	int numberOfBlocks = inode->getNrOfBlocks();
-	std::string* names = new std::string[numberOfBlocks];
-	for (int i = 2; i < numberOfBlocks && returnIndex == -1; i++)
-		if (inode->isBlockUsed(i))
-		{
-			Block currentBlock = mMemblockDevice.readBlock(inode->getHDDadress(i));
-			Inode curInode(currentBlock);
-			names[i] = curInode.getName();
-			if (name == names[i])
-			{
-				delete[] names;
-				names = nullptr;
-				returnIndex = i;
-			}
-
-		}
-	if (names != nullptr) delete[] names;
-	return returnIndex;
-}
-
 void FileSystem::refreshCurrentInode()
 {
 	// Update currentInode 
@@ -1418,10 +1390,6 @@ void FileSystem::changeCurrentInode(Inode * newCur)
 	delete currentInode;
 	currentInode = new Inode(*newCur);
 	delete newCur;
-
-	// Updates name
-	currentDirectory = currentInode->getName();
-	currentDirectory += currentInode->getType();
 }
 
 

@@ -10,8 +10,6 @@ class FileSystem
 private:
     MemBlockDevice mMemblockDevice;
 	Inode* currentInode;
-	std::string currentDirectory;
-
 public:
     FileSystem();
     ~FileSystem();
@@ -91,7 +89,6 @@ public:
 	/* This function will return the path to current working directory */
 	std::string pwd() const;
 
-   
 	int changeDir(char* folderPath);
 
 	std::string toTreeFormat() const;
@@ -131,8 +128,6 @@ private:
 
 	/* Splits a char* into strings based on '/' */
 	std::string* seperateSlashes(char* filepath, int& size) const;
-
-	int getIndexOfNodeWithName(const char * name, const Inode* inode) const;
 
 	void refreshCurrentInode();
 	
