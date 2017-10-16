@@ -251,9 +251,14 @@ int FileSystem::append(char * sFP, char * dFP)
 
 		Block parentBlock = mMemblockDevice.readBlock(destFile->getParentHDDLoc());
 		Inode* parentNode = new Inode(parentBlock);
-		removeFile((char*)destFile->getName(), parentNode);
-		createFile((char*)destFile->getName(), finalBuffer, finalBufferIndex);
-		result = true;
+
+		if (((finalBufferIndex / 512)+1) < (destFile->getNrOfBlocks() - 2))
+		{
+			removeFile((char*)destFile->getName(), parentNode);
+			createFile((char*)destFile->getName(), finalBuffer, finalBufferIndex);
+			result = true;
+		}
+
 		delete parentNode;
 
 		delete[] finalBuffer;
@@ -526,8 +531,9 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 			holder += printer.getPermAsString() + "\t\t\t";
 
 			// Size 
-			holder += std::to_string(printer.getDataSize()) + " byte\t\t"; 
-
+			holder += std::to_string(printer.getDataSize()) + " byte\t";
+			if(printer.getDataSize() < 100)
+				holder += "\t";
 			// Name
 			
 			holder += printer.getName();
