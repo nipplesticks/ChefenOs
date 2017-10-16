@@ -64,6 +64,7 @@ public:
 	   -5 = "destination" is a file*/
 	int copyTarget(char * target, char * destination);
 
+
 	/* Removes the folder/file given its relative or absolute path
 	Returns:
 		1 = Success
@@ -109,6 +110,7 @@ public:
 
 private:
 	// Help functions
+	bool removeFile(char* fileName, Inode* parentNode);
 
 	/* Compares all the names in the current Inode
 	Return false if name found */
