@@ -86,16 +86,12 @@ public:
 	bool readImage(char* path);
 
     /* This function will get all the files and folders in the specified folder */
-	bool listCopy(char* filepath, std::string& holder);
+	bool listCopy(char* filepath, std::string& holder) const;
+	
 	/* This function will return the path to current working directory */
-	std::string pwd();
+	std::string pwd() const;
 
-    /* Add your own member-functions if needed */
-	/* Return current INode name+type*/
-	std::string currentDir() const;
-
-	void setCurrentDirStr(const std::string& str, bool remove);
-
+   
 	int changeDir(char* folderPath);
 
 	std::string toTreeFormat() const;
@@ -120,7 +116,7 @@ private:
 	char* stringToCharP(const std::string& string) const;
 
 	bool clearFolder(Inode* tbrNode);
-	bool removeFile(char* fileName, Inode* parentNode);
+
 
 	/* Change current Inode */
 	void changeCurrentInode(Inode* newCur);
@@ -128,7 +124,7 @@ private:
 	/* Returns the Inode associated with given folderpath */
 	Inode* walkDir(char* folderPath) const;
 
-	std::string dirNameJumper(int index);
+	std::string dirNameJumper(int index) const;
 
 	/* Determines if the path is absolute or relative and stores each dir in string* */
 	Inode* pathSolver(char* folderName, std::string*& folderNames, int& arraySize) const;

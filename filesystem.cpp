@@ -283,157 +283,9 @@ int FileSystem::move(char * sFP, char * dFP)
 	int result = false;
 	
 	result = copyTarget(sFP, dFP); // If the copy target fails, then the destination doesnt exist, its a name change instead
-	
-	
-	//if (result == 0)
-	//{
-	//	/* Find path if any */
-	//	int arraySize = 0;
-	//	std::string* folders;
-	//	Inode* tempNode = pathSolver(dFP, folders, arraySize);
-	//	// Now i know if its relative or absolute path
-	//	std::string filePathBeforeFile = "";
-	//	for (int i = 0; i < arraySize - 1; i++)
-	//	{
-	//		filePathBeforeFile += "/" + folders[i];
-	//	}
-	//	Inode* currentHolder = nullptr;
-	//	if (arraySize == 1) // if true, then in currentFolder
-	//	{
-	//		currentHolder = tempNode;
-	//	}
-	//	else // path exist
-	//	{
-	//		char* fpbf_p = stringToCharP(filePathBeforeFile);
-	//		currentHolder = walkDir(fpbf_p);
-	//		delete[] fpbf_p;
-	//		delete tempNode;
-	//	}
-
-	//	Inode* sourceNode = walkDir(sFP);
-	//	if (sourceNode != nullptr)
-	//	{
-	//		
-	//		char* newFileName = nullptr;
-	//		
-	//		if (arraySize == 1)
-	//		{
-	//			newFileName = constChartoChar(folders[0].c_str());
-	//			sourceNode->setName(newFileName);
-	//		}
-	//		else
-	//		{
-	//			newFileName = constChartoChar(folders[arraySize - 1].c_str());
-	//			sourceNode->setName(newFileName);
-
-	//			std::string* newSFP;
-	//			int sfpArraySize = 0;
-	//			delete pathSolver(dFP, newSFP, arraySize);
-	//			std::string newPath = "";
-	//			for (int i = 0; i < sfpArraySize; i++)
-	//			{
-	//				newPath += "/" + newSFP[i];
-	//			}
-
-
-
-	//			copyTarget((char*)newPath.c_str(), (char*)filePathBeforeFile.c_str());
-	//			remove((char*)newPath.c_str());
-	//			delete[] newSFP;
-	//		}
-
-	//		char* fileContent = sourceNode->toCharArray();
-	//		mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
-	//		delete[] fileContent;
-
-	//		delete sourceNode;
-	//		
-	//		delete[] folders;
-	//		result = true;
-	//	}
-
-	//}
-	
-
-	if (result == 0) //dFP finns inte, det måste vara ett nytt filnamn.
-	{
-		//Har dFP en path innan det nya filnamnet
-		int nrOfDestFolders = 0;
-		std::string *destFolders = nullptr;
-		Inode *destDir = pathSolver(dFP, destFolders, nrOfDestFolders);
-		std::string pathToDestDir = "";
-		std::string destFileName = "";
-
-		if (destDir->getHDDLoc() == 0)
-		{
-			pathToDestDir += "/";
-		}
-
-		for (int i = 0; i < nrOfDestFolders - 1; i++)
-			pathToDestDir += destFolders[i] + "/";
-		destFileName = destFolders[nrOfDestFolders - 1];
-		
-		int nrOfSrcFolders = 0;
-		std::string *srcFolders = nullptr;
-		Inode *srcDir = pathSolver(sFP, srcFolders, nrOfSrcFolders);
-		std::string pathToSrcDir = "";
-		std::string srcFileName = "";
-
-		if (srcDir->getHDDLoc() == 0)
-			pathToSrcDir += "/";
-		srcFileName = srcFolders[nrOfSrcFolders - 1];
-
-		for (int i = 0; i < nrOfSrcFolders - 1; i++)
-			pathToSrcDir += srcFolders[i] + "/";
-		srcFileName = srcFolders[nrOfSrcFolders - 1];
-
-		if (nrOfDestFolders > 1)
-		{
-			Inode *temp = walkDir(sFP);
-			char * destName = constChartoChar(destFileName.c_str());
-			temp->setName(destName);
-			mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
-			if (copyTarget((char*)(pathToSrcDir + destFileName).c_str(), (char*)pathToDestDir.c_str()))
-			{
-
-				remove((char*)(pathToSrcDir + destFileName).c_str());
-			}
-			else
-			{
-				char * oldName = constChartoChar(srcFileName.c_str());
-				temp->setName(oldName);
-				mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
-			}
-			delete temp;
-		}
-		else
-		{
-			Inode *temp = walkDir(sFP);
-			char * destName = constChartoChar(destFileName.c_str());
-			temp->setName(destName);
-			mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
-			if (copyTarget((char*)(pathToSrcDir + destFileName).c_str(), (char*)("./" + pathToDestDir).c_str()))
-			{
-				remove((char*)(pathToSrcDir + destFileName).c_str());
-			}
-			else
-			{
-				char * oldName = constChartoChar(srcFileName.c_str());
-				temp->setName(oldName);
-				mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
-			}
-			delete temp;
-		}
-		delete[] destFolders;
-		delete destDir;
-		delete[] srcFolders;
-		delete srcDir;
-
-	}
-	else if(result == 1)
-	{
+	if(result == 1) 
 		result = remove(sFP);
-	}
+	
 	refreshCurrentInode();
 	return result;
 }
@@ -613,7 +465,7 @@ std::string FileSystem::printHDD()
 	return mMemblockDevice.toFile();
 }
 /* Lists all available entires in current INode*/
-bool FileSystem::listCopy(char* filepath, std::string& holder)
+bool FileSystem::listCopy(char* filepath, std::string& holder) const
 {
 
 	Inode* tempNode = nullptr;
@@ -671,20 +523,9 @@ bool FileSystem::listCopy(char* filepath, std::string& holder)
 	return true;
 }
 
-std::string FileSystem::pwd()
+std::string FileSystem::pwd() const
 {
 	return dirNameJumper(currentInode->getHDDLoc());
-}
-
-/* Return current I-Node name+type*/
-std::string FileSystem::currentDir() const
-{
-	return currentDirectory;
-}
-
-void FileSystem::setCurrentDirStr(const std::string & str, bool remove)
-{
-		currentDirectory = str;
 }
 
 /* Fully working changeDir method with support for multiple slashes 
@@ -750,7 +591,7 @@ Inode* FileSystem::walkDir(char * folderPath) const
 	return nullptr;
 }
 
-std::string FileSystem::dirNameJumper(int index)
+std::string FileSystem::dirNameJumper(int index) const
 {
 	Block currentBlock = mMemblockDevice.readBlock(index);
 	Inode name(currentBlock);
@@ -1052,7 +893,7 @@ int FileSystem::copyTarget(char * target, char * destination)
 			delete destinationNode;
 			return -2;
 		}
-		if (destinationNode != nullptr)
+		if (destinationNode != nullptr) 
 		{
 
 			if (!destinationNode->getRead())
@@ -1074,47 +915,90 @@ int FileSystem::copyTarget(char * target, char * destination)
 				delete destinationNode;
 				return -5;
 			}
-		}
-		else
-		{
-			delete targetNode;
-			return 0;
-		}
-		while (!isNameUnique(targetNode->getName(), destinationNode))
-		{
-			char * name = constChartoChar(targetNode->getName());
-			std::string nameAsString = name;
-			int indexOfDot = nameAsString.find_last_of('.');
-			if (indexOfDot != -1)
+			while (!isNameUnique(targetNode->getName(), destinationNode))
 			{
-				std::string fileType = "";
-				int lengthOfString = nameAsString.length();
-				for (int i = indexOfDot; i < lengthOfString; i++)
-					fileType += nameAsString[i];
-				for (int i = indexOfDot; i < lengthOfString; i++)
-					nameAsString.pop_back();
-				nameAsString += "_copy" + fileType;
+				char * name = constChartoChar(targetNode->getName());
+				std::string nameAsString = name;
+				int indexOfDot = nameAsString.find_last_of('.');
+				if (indexOfDot != -1)
+				{
+					std::string fileType = "";
+					int lengthOfString = nameAsString.length();
+					for (int i = indexOfDot; i < lengthOfString; i++)
+						fileType += nameAsString[i];
+					for (int i = indexOfDot; i < lengthOfString; i++)
+						nameAsString.pop_back();
+					nameAsString += "_copy" + fileType;
+				}
+				else
+				{
+					nameAsString += "_copy";
+				}
+				char * newName = stringToCharP(nameAsString);
+				targetNode->setName(newName);
+
+				//delete[] newName;
+				delete[] name;
+			}
+			int indexInDestinationArray = destinationNode->freeBlockInInode();
+			int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
+			targetNode->setHDDLoc(targetNewAdressOnHDD);
+
+			//Sätt target på destinationen
+			destinationNode->lockFirstAvailableBlock();
+
+			result = copyRecursive(targetNode, destinationNode);
+
+			refreshCurrentInode();
+		}
+		else // There is no destination
+		{
+			char* name;
+			int arraySize = 0;
+			std::string* folders;
+			Inode* temp = pathSolver(destination, folders, arraySize);
+			delete temp;
+
+			std::string pathBeforeFilePath;
+			for (int i = 0; i < arraySize - 1; i++)
+				pathBeforeFilePath += folders[i] + "/";
+			if (arraySize == 1)
+			{
+				pathBeforeFilePath = "./";
+				name = constChartoChar((const char*)destination);
 			}
 			else
 			{
-				nameAsString += "_copy";
+				name = constChartoChar(folders[arraySize - 1].c_str());
 			}
-			char * newName = stringToCharP(nameAsString);
-			targetNode->setName(newName);
 
-			//delete[] newName;
-			delete[] name;
+			char * path = constChartoChar(pathBeforeFilePath.c_str());
+			destinationNode = walkDir(path);
+			if (destinationNode == nullptr)
+			{
+				delete targetNode;
+				delete[] name;
+				return 0;
+			}
+			if (isNameUnique(name, destinationNode))
+			{
+				int indexInDestinationArray = destinationNode->freeBlockInInode();
+				int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
+				targetNode->setHDDLoc(targetNewAdressOnHDD);
+
+				//Sätt target på destinationen
+				destinationNode->lockFirstAvailableBlock();
+				targetNode->setName(name);
+				result = copyRecursive(targetNode, destinationNode);
+
+				refreshCurrentInode();
+			}
+			else
+				delete[] name;
+			delete[] path;
+			delete[] folders;
 		}
-		int indexInDestinationArray = destinationNode->freeBlockInInode();
-		int targetNewAdressOnHDD = destinationNode->getHDDadress(indexInDestinationArray);
-		targetNode->setHDDLoc(targetNewAdressOnHDD);
-
-		//Sätt target på destinationen
-		destinationNode->lockFirstAvailableBlock();
-
-		result = copyRecursive(targetNode, destinationNode);
-
-		refreshCurrentInode();
+		
 	}
 	else
 	{
