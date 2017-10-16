@@ -188,6 +188,7 @@ int Inode::freeBlockInInode()
 
 void Inode::cleanup()
 {
+	
 	delete[] name;
 	name = nullptr;
 	delete[] type;

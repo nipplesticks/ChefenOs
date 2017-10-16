@@ -283,68 +283,154 @@ int FileSystem::move(char * sFP, char * dFP)
 	int result = false;
 	
 	result = copyTarget(sFP, dFP); // If the copy target fails, then the destination doesnt exist, its a name change instead
-	if (result == 0)
+	
+	
+	//if (result == 0)
+	//{
+	//	/* Find path if any */
+	//	int arraySize = 0;
+	//	std::string* folders;
+	//	Inode* tempNode = pathSolver(dFP, folders, arraySize);
+	//	// Now i know if its relative or absolute path
+	//	std::string filePathBeforeFile = "";
+	//	for (int i = 0; i < arraySize - 1; i++)
+	//	{
+	//		filePathBeforeFile += "/" + folders[i];
+	//	}
+	//	Inode* currentHolder = nullptr;
+	//	if (arraySize == 1) // if true, then in currentFolder
+	//	{
+	//		currentHolder = tempNode;
+	//	}
+	//	else // path exist
+	//	{
+	//		char* fpbf_p = stringToCharP(filePathBeforeFile);
+	//		currentHolder = walkDir(fpbf_p);
+	//		delete[] fpbf_p;
+	//		delete tempNode;
+	//	}
+
+	//	Inode* sourceNode = walkDir(sFP);
+	//	if (sourceNode != nullptr)
+	//	{
+	//		
+	//		char* newFileName = nullptr;
+	//		
+	//		if (arraySize == 1)
+	//		{
+	//			newFileName = constChartoChar(folders[0].c_str());
+	//			sourceNode->setName(newFileName);
+	//		}
+	//		else
+	//		{
+	//			newFileName = constChartoChar(folders[arraySize - 1].c_str());
+	//			sourceNode->setName(newFileName);
+
+	//			std::string* newSFP;
+	//			int sfpArraySize = 0;
+	//			delete pathSolver(dFP, newSFP, arraySize);
+	//			std::string newPath = "";
+	//			for (int i = 0; i < sfpArraySize; i++)
+	//			{
+	//				newPath += "/" + newSFP[i];
+	//			}
+
+
+
+	//			copyTarget((char*)newPath.c_str(), (char*)filePathBeforeFile.c_str());
+	//			remove((char*)newPath.c_str());
+	//			delete[] newSFP;
+	//		}
+
+	//		char* fileContent = sourceNode->toCharArray();
+	//		mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
+	//		delete[] fileContent;
+
+	//		delete sourceNode;
+	//		
+	//		delete[] folders;
+	//		result = true;
+	//	}
+
+	//}
+	
+
+	if (result == 0) //dFP finns inte, det måste vara ett nytt filnamn.
 	{
-		/* Find path if any */
-		int arraySize = 0;
-		std::string* folders;
-		Inode* tempNode = pathSolver(dFP, folders, arraySize);
-		// Now i know if its relative or absolute path
-		std::string filePathBeforeFile = "";
-		for (int i = 0; i < arraySize - 1; i++)
+		//Har dFP en path innan det nya filnamnet
+		int nrOfDestFolders = 0;
+		std::string *destFolders = nullptr;
+		Inode *destDir = pathSolver(dFP, destFolders, nrOfDestFolders);
+		std::string pathToDestDir = "";
+		std::string destFileName = "";
+
+		if (destDir->getHDDLoc() == 0)
 		{
-			filePathBeforeFile += "/" + folders[i];
-		}
-		Inode* currentHolder = nullptr;
-		if (arraySize == 1) // if true, then in currentFolder
-		{
-			currentHolder = tempNode;
-		}
-		else // path exist
-		{
-			char* fpbf_p = stringToCharP(filePathBeforeFile);
-			currentHolder = walkDir(fpbf_p);
-			delete[] fpbf_p;
-			delete tempNode;
+			pathToDestDir += "/";
 		}
 
-		Inode* sourceNode = walkDir(sFP);
-		if (sourceNode != nullptr)
+		for (int i = 0; i < nrOfDestFolders - 1; i++)
+			pathToDestDir += destFolders[i] + "/";
+		destFileName = destFolders[nrOfDestFolders - 1];
+		
+		int nrOfSrcFolders = 0;
+		std::string *srcFolders = nullptr;
+		Inode *srcDir = pathSolver(sFP, srcFolders, nrOfSrcFolders);
+		std::string pathToSrcDir = "";
+		std::string srcFileName = "";
+
+		if (srcDir->getHDDLoc() == 0)
+			pathToSrcDir += "/";
+		srcFileName = srcFolders[nrOfSrcFolders - 1];
+
+		for (int i = 0; i < nrOfSrcFolders - 1; i++)
+			pathToSrcDir += srcFolders[i] + "/";
+		srcFileName = srcFolders[nrOfSrcFolders - 1];
+
+		if (nrOfDestFolders > 1)
 		{
-			
-			char* newFileName = nullptr;
-			
-			if (arraySize == 1)
+			Inode *temp = walkDir(sFP);
+			char * destName = constChartoChar(destFileName.c_str());
+			temp->setName(destName);
+			mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
+			if (copyTarget((char*)(pathToSrcDir + destFileName).c_str(), (char*)pathToDestDir.c_str()))
 			{
-				newFileName = constChartoChar(folders[0].c_str());
-				sourceNode->setName(newFileName);
 
-				char* fileContent = sourceNode->toCharArray();
-				mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
-				delete[] fileContent;
+				remove((char*)(pathToSrcDir + destFileName).c_str());
 			}
 			else
 			{
-				newFileName = constChartoChar(folders[arraySize - 1].c_str());
-				sourceNode->setName(newFileName);
-
-				char* fileContent = sourceNode->toCharArray();
-				mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
-				delete[] fileContent;
-
-				copyTarget(newFileName, (char*)filePathBeforeFile.c_str());
-				remove(newFileName);
+				char * oldName = constChartoChar(srcFileName.c_str());
+				temp->setName(oldName);
+				mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
 			}
-
-			
-
-			delete sourceNode;
-			delete[] folders;
-			result = true;
+			delete temp;
 		}
+		else
+		{
+			Inode *temp = walkDir(sFP);
+			char * destName = constChartoChar(destFileName.c_str());
+			temp->setName(destName);
+			mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
+			if (copyTarget((char*)(pathToSrcDir + destFileName).c_str(), (char*)("./" + pathToDestDir).c_str()))
+			{
+				remove((char*)(pathToSrcDir + destFileName).c_str());
+			}
+			else
+			{
+				char * oldName = constChartoChar(srcFileName.c_str());
+				temp->setName(oldName);
+				mMemblockDevice.writeBlock(temp->getHDDLoc(), temp->toCharArray());
+			}
+			delete temp;
+		}
+		delete[] destFolders;
+		delete destDir;
+		delete[] srcFolders;
+		delete srcDir;
 
 	}
-	else if( result == 1)
+	else if(result == 1)
 	{
 		result = remove(sFP);
 	}
@@ -1053,7 +1139,7 @@ bool FileSystem::removeFile(char* fileName, Inode* parentNode)
 				Block nodeBlock = mMemblockDevice.readBlock(hddAddressToRemove);
 				Inode temp(nodeBlock);
 				
-				if (!strcmp(temp.getName(), (const char*)fileName)) 
+				if (!strcmp(temp.getName(), ((const char*)(fileName[0] == '/') ? (const char*)++fileName : (const char*)fileName)))
 				{
 					int numberOfAdresses = temp.getNrOfBlocks();
 					int* hddAdresses = new int[numberOfAdresses];
