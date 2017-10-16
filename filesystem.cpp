@@ -1,4 +1,8 @@
-﻿#include "filesystem.h"
+﻿/*Created by:
+Henrik Nilsson the Malaysia airlines bug creator
+Magnus Nyqvist the princess of Malaysia airlines
+*/
+#include "filesystem.h"
 
 FileSystem::FileSystem()
 {
