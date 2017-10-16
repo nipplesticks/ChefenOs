@@ -449,9 +449,9 @@ int FileSystem::createFolder(char * folderName)
 	
 }
 
-void FileSystem::createImage(char * folderPath)
+void FileSystem::createImage(char * path)
 {
-	auto file = std::fstream(folderPath, std::ios::out | std::ios::binary);
+	auto file = std::fstream(path, std::ios::out | std::ios::binary);
 	if (file.good())
 	{
 		std::string content = mMemblockDevice.toFile();
@@ -461,9 +461,9 @@ void FileSystem::createImage(char * folderPath)
 	
 }
 
-bool FileSystem::readImage(char * folderPath)
+bool FileSystem::readImage(char * path)
 {
-	auto file = std::fstream(folderPath, std::ios::in | std::ios::binary);
+	auto file = std::fstream(path, std::ios::in | std::ios::binary);
 	bool foundFile = false;
 	if (file.good())
 	{
@@ -1084,23 +1084,35 @@ bool FileSystem::removeFile(char* fileName, Inode* parentNode)
 	}
 	return removed;
 }
-
+/*
+Return 1: Success
+Return 0: Failed
+Return -1: nodeTodelete read denied
+Return -2: parentNode write denied
+*/
 int FileSystem::remove(char * path)
 {
 	int result = 0;
 	Inode* nodeToDelete = walkDir(path);
+
 	if (nodeToDelete)
 	{
+		
 		if (!nodeToDelete->getRead())
 		{
 			delete nodeToDelete;
 			return -1;
 		}
-	
+
 		const char* name = nodeToDelete->getName();
 		Block parentBlock = mMemblockDevice.readBlock(nodeToDelete->getParentHDDLoc());
 		Inode* parentNode = new Inode(parentBlock);
-
+		if (!parentNode->getWrite())
+		{
+			delete nodeToDelete;
+			delete parentNode;
+			return -2;
+		}
 		if (!strcmp(nodeToDelete->getType(), "/"))
 		{
 			clearFolder(nodeToDelete);

@@ -349,6 +349,9 @@ void remove(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
 			case -1:
 				std::cout << "rm: " << arg1 << ": Permission to read denied\n";
 				break;
+			case -2:
+				std::cout << "rm: " << arg1 << ": Parent folder write denied\n";
+				break;
 			}
 		}
 		delete[] arg1;
