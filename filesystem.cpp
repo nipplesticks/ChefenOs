@@ -296,11 +296,11 @@ int FileSystem::move(char * sFP, char * dFP)
 			filePathBeforeFile += "/" + folders[i];
 		}
 		Inode* currentHolder = nullptr;
-		if (arraySize == 1) // if true, no path
+		if (arraySize == 1) // if true, then in currentFolder
 		{
 			currentHolder = tempNode;
 		}
-		else
+		else // path exist
 		{
 			char* fpbf_p = stringToCharP(filePathBeforeFile);
 			currentHolder = walkDir(fpbf_p);
@@ -311,20 +311,32 @@ int FileSystem::move(char * sFP, char * dFP)
 		Inode* sourceNode = walkDir(sFP);
 		if (sourceNode != nullptr)
 		{
-			int arraySize = 0;
-			std::string* folders = seperateSlashes(dFP, arraySize);
+			
 			char* newFileName = nullptr;
 			
 			if (arraySize == 1)
+			{
 				newFileName = constChartoChar(folders[0].c_str());
+				sourceNode->setName(newFileName);
+
+				char* fileContent = sourceNode->toCharArray();
+				mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
+				delete[] fileContent;
+			}
 			else
+			{
 				newFileName = constChartoChar(folders[arraySize - 1].c_str());
+				sourceNode->setName(newFileName);
 
-			sourceNode->setName(newFileName);
+				char* fileContent = sourceNode->toCharArray();
+				mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
+				delete[] fileContent;
 
-			char* fileContent = sourceNode->toCharArray();
-			mMemblockDevice.writeBlock(sourceNode->getHDDLoc(), fileContent);
-			delete[] fileContent;
+				copyTarget(newFileName, (char*)filePathBeforeFile.c_str());
+				remove(newFileName);
+			}
+
+			
 
 			delete sourceNode;
 			delete[] folders;
