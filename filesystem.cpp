@@ -961,7 +961,7 @@ int FileSystem::copyTarget(char * target, char * destination)
 			delete targetNode;
 			return 0;
 		}
-		if (!isNameUnique(targetNode->getName(), destinationNode))
+		while (!isNameUnique(targetNode->getName(), destinationNode))
 		{
 			char * name = constChartoChar(targetNode->getName());
 			std::string nameAsString = name;
