@@ -7,6 +7,7 @@ class MemBlockDevice: public BlockDevice
 {
 private:
 	void init();
+	char* constChartoChar(const char * string) const;
 	class IntNode
 	{
 	public:
@@ -19,6 +20,8 @@ private:
 		}
 	};
 	IntNode* headNode;
+	IntNode* buildList(int nrOfBlocks = 250);
+	void copyList(IntNode * source, IntNode*& destination);
 public:
     MemBlockDevice(int nrOfBlocks = 250);
     MemBlockDevice(const MemBlockDevice &other);
@@ -36,6 +39,7 @@ public:
     int writeBlock(int blockNr, const std::vector<char> &vec);
     int writeBlock(int blockNr, const std::string &strBlock);
     int writeBlock(int blockNr, const char cArr[]);     // Use with care, make sure that cArr has at least the same dimension as block
+	void createList(int* blocks, int size);
 
     /* Reads a block */
     Block readBlock(int blockNr) const;
@@ -49,15 +53,11 @@ public:
 	/* Return freeblockadresses - linkedList */
 	int* get10FreeBlockAdresses();
 
-	char* constChartoChar(const char * string) const;
 	std::string toFile();
 
 	Block* getPtrOfBlock(int index);
 
 	bool insertBlockIndex(int index);
-	IntNode* buildList(int nrOfBlocks = 250);
-	void createList(int* blocks, int size);
-	void copyList(IntNode * source, IntNode*& destination);
 	
 	int* getAllFreeBlocks(int& size);
 	int getFreeHDDIndex();
