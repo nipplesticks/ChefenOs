@@ -438,12 +438,12 @@ bool FileSystem::readImage(char * folderPath)
 
 		// Calculate how many characters in file
 		file.seekg(0, std::ios::end);
-		size_t size = file.tellg();
+		std::streampos size = file.tellg();
 
 		// Reset filepointer to begining
 		file.seekg(0, std::ios_base::beg);
 		
-		char* buffer = new char[size];
+		char* buffer = new char[static_cast<int>(size)];
 
 		// Fill buffer with file content
 		file.read(buffer, size);
@@ -470,7 +470,7 @@ bool FileSystem::readImage(char * folderPath)
 		int arraySize = 0;
 		while((1 + size)> bufferIndex)
 		{
-			container = readString(buffer, bufferIndex, size);
+			container = readString(buffer, bufferIndex, static_cast<int>(size));
 			if (strcmp(container.c_str(), ""))
 			{
 				freeBlocks[arraySize++] = std::stoi(container);
@@ -956,7 +956,12 @@ int FileSystem::copyTarget(char * target, char * destination)
 				return -5;
 			}
 		}
-		if (isNameUnique(targetNode->getName(), destinationNode));
+		else
+		{
+			delete targetNode;
+			return 0;
+		}
+		if (!isNameUnique(targetNode->getName(), destinationNode))
 		{
 			char * name = constChartoChar(targetNode->getName());
 			std::string nameAsString = name;
@@ -969,11 +974,11 @@ int FileSystem::copyTarget(char * target, char * destination)
 					fileType += nameAsString[i];
 				for (int i = indexOfDot; i < lengthOfString; i++)
 					nameAsString.pop_back();
-				//nameAsString += "_copy" + fileType;
+				nameAsString += "_copy" + fileType;
 			}
 			else
 			{
-				//nameAsString += "_copy";
+				nameAsString += "_copy";
 			}
 			char * newName = stringToCharP(nameAsString);
 			targetNode->setName(newName);
@@ -1386,7 +1391,7 @@ void FileSystem::traverseDirectory(Inode * current, int & width, int& undone,boo
 char * FileSystem::stringToCharP(const std::string& string) const
 {
 	char* newChar = new char[string.length()+1];
-	for (int i = 0; i < string.length(); i++)
+	for (unsigned int i = 0; i < string.length(); i++)
 		newChar[i] = string[i];
 	newChar[string.length()] = '\0';
 	return newChar;

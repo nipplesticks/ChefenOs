@@ -30,7 +30,7 @@ Inode::Inode(const Block & block)
 	data >> StringConverter;
 	int size = StringConverter.size() + 1;
 	type = new char[size];
-	for(int i = 0; i < StringConverter.size(); i++)
+	for(unsigned int i = 0; i < StringConverter.size(); i++)
 		 type[i] = StringConverter[i];
 	type[size - 1] = '\0';
 

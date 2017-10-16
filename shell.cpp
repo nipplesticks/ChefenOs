@@ -61,8 +61,6 @@ int main(void) {
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed
     bool bRun = true;
 
-	
-	const char* option;
     do {
         std::cout << user << ":" << fs.pwd() << "\n$ ";
 		getline(std::cin, userCommand);
@@ -526,7 +524,7 @@ char* getCommandsAsChar(const std::string &command, int expectedCommands, int nr
 	if (nrOfCommands == expectedCommands)
 	{
 		folderpath = new char[command.length() + 1];
-		for (int i = 0; i < command.length() + 1; i++)
+		for (unsigned int i = 0; i < command.length() + 1; i++)
 		{
 			folderpath[i] = command[i];
 		}
