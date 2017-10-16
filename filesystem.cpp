@@ -56,7 +56,6 @@ int FileSystem::createFile(char * fileName, const char* content, int sizeInBytes
 	{
 		delete[] folders;
 		delete currentHolder;
-		// MÅSTE KOLLA MINNESLÄCKOR
 		return -1;
 	}
 	if (!currentHolder->getRead())
@@ -164,7 +163,7 @@ Return 0: Failed
 Return -1: sourceFile cant read
 Return -2: destFile cant Read
 Return -3: destFile cant write
-IS NOT MEMORY EFFICIENT!!*/
+*/
 int FileSystem::append(char * sFP, char * dFP)
 {
 	bool result = false;
@@ -193,68 +192,72 @@ int FileSystem::append(char * sFP, char * dFP)
 		}
 
 		int nrOfBlocksNeeded	= sourceFile->getNrOfInUseBlocks() - 2,
-			bufferSize			= nrOfBlocksNeeded * 512,
-			bufferIndex			= 0;
+			bufferSize1			= nrOfBlocksNeeded * 512,
+			bufferIndex1		= 0;
 		
-		char* buffer1 = new char[bufferSize];
+		char* buffer1 = new char[bufferSize1];
 		// Fill buffer1 with sourceFile's content
 		int nrOfBlocks = sourceFile->getNrOfBlocks();
-		for (int i = 2; i < nrOfBlocks && bufferIndex != bufferSize; i++)
+		for (int i = 2; i < nrOfBlocks && bufferIndex1 != bufferSize1; i++)
 		{
 			if (sourceFile->isBlockUsed(i))
 			{
 				Block curBlock = mMemblockDevice.readBlock(sourceFile->getHDDadress(i));
 				for (int k = 0; k < 512 && curBlock[k] != '\0'; k++)
 				{
-					buffer1[bufferIndex] = '\0';
-					buffer1[bufferIndex++] = curBlock[k];
+					buffer1[bufferIndex1] = '\0';
+					buffer1[bufferIndex1++] = curBlock[k];
 				}
 				
 			}
 		}
-		buffer1[bufferIndex] = '\0';
-		if (destFile->getNrOfFreeBlocks() > nrOfBlocksNeeded)
+		//buffer1[bufferIndex1] = '\0';
+
+		// Fill buffer2 with destinatations content
+		int nrOfBlocksNeeded2	= destFile->getNrOfInUseBlocks() - 2,
+			bufferSize2			= nrOfBlocksNeeded2 * 512,
+			bufferIndex2		= 0;
+
+		char* buffer2 = new char[bufferSize2];
+
+		nrOfBlocks = destFile->getNrOfBlocks();
+		for (int i = 2; i < nrOfBlocks && bufferIndex1 != bufferSize1; i++)
 		{
-			result = true;
-			char** buffer2 = new char*[nrOfBlocksNeeded];
-			for (int i = 0; i < nrOfBlocksNeeded; i++)
+			if (destFile->isBlockUsed(i))
 			{
-				buffer2[i] = new char[512];
-				int k = 0;
-				for (; k < 512 && buffer1[k+(i*512)] != '\0'; k++)
+				Block curBlock = mMemblockDevice.readBlock(destFile->getHDDadress(i));
+				for (int k = 0; k < 512 && curBlock[k] != '\0'; k++)
 				{
-					buffer2[i][k] = '\0';
-					buffer2[i][k] = buffer1[k + (i * 512)];
+					buffer2[bufferIndex2] = '\0';
+					buffer2[bufferIndex2++] = curBlock[k];
 				}
-				if(k == 512) 
-					buffer2[i][k-1] = '\0';
-				else
-					buffer2[i][k] = '\0';
-			}
-			int blockCounter = 0;
-			for (int i = 2; i < nrOfBlocks && blockCounter != nrOfBlocksNeeded; i++)
-			{
-				if (!destFile->isBlockUsed(i))
-				{
-					destFile->lockBlockAt(i);
-					mMemblockDevice.writeBlock(destFile->getHDDadress(i), buffer2[blockCounter++]);
-				}
-			}
-			destFile->setDataSize(destFile->getDataSize() + bufferIndex);
-			char* fileNodeContent = destFile->toCharArray();
 
-			mMemblockDevice.writeBlock(destFile->getHDDLoc(), fileNodeContent);
-			
-			delete[] fileNodeContent;
-			
-			for (int i = 0; i < nrOfBlocksNeeded; i++)
-				delete[] buffer2[i];
-			
-			delete[] buffer2;
-			
-			
+			}
 		}
+		
+		int finalBufferSize = bufferIndex1 + bufferIndex2;
+		char* finalBuffer = new char[finalBufferSize + 1];
+		int finalBufferIndex = 0;
+		
+		for(; finalBufferIndex < bufferIndex2; finalBufferIndex++)
+		{ 
+			finalBuffer[finalBufferIndex] = buffer2[finalBufferIndex];
+		}
+		for (int i = 0; i < bufferIndex1; i++)
+		{
+			finalBuffer[finalBufferIndex++] = buffer1[i];
+		}
+		finalBuffer[finalBufferSize] = '\0';
 
+		Block parentBlock = mMemblockDevice.readBlock(destFile->getParentHDDLoc());
+		Inode* parentNode = new Inode(parentBlock);
+		removeFile((char*)destFile->getName(), parentNode);
+		createFile((char*)destFile->getName(), finalBuffer, finalBufferIndex);
+		result = true;
+		delete parentNode;
+
+		delete[] finalBuffer;
+		delete[] buffer2;
 		delete[] buffer1;
 	}
 	if (sourceFile) delete sourceFile;
@@ -268,6 +271,7 @@ Return -1: no read sfp
 Return -2: no write sfp
 Return -3: no read dfp
 Return -4: no write dfp
+Return -5: Not same type
 */
 int FileSystem::move(char * sFP, char * dFP)
 {
@@ -302,7 +306,7 @@ int FileSystem::move(char * sFP, char * dFP)
 		}
 
 	}
-	else
+	else if( result == 1)
 	{
 		result = remove(sFP);
 	}
@@ -772,7 +776,6 @@ int FileSystem::getFileContent(char * target, std::string& content) const
 	
 	if (currentHolder)
 	{
-		
 			if (currentHolder->getType()[0] != '/')
 			{
 				if (currentHolder->getRead())
@@ -895,6 +898,7 @@ return -1: no read targetNode
 return -2: no write targetNode
 return -3: no read destinationNode
 return -4: no write destinationNode
+return -5: destination is a file
 */
 int FileSystem::copyTarget(char * target, char * destination)
 {
@@ -903,8 +907,8 @@ int FileSystem::copyTarget(char * target, char * destination)
 	Inode * targetNode = walkDir(target);
 	//Gå till destinationen
 	Inode * destinationNode = walkDir(destination);
-		
-	if (targetNode != nullptr && destinationNode != nullptr)
+	
+	if (targetNode != nullptr)
 	{
 		if (!targetNode->getRead())
 		{
@@ -918,17 +922,28 @@ int FileSystem::copyTarget(char * target, char * destination)
 			delete destinationNode;
 			return -2;
 		}
-		if (!destinationNode->getRead())
+		if (destinationNode != nullptr)
 		{
-			delete targetNode;
-			delete destinationNode;
-			return -3;
-		}
-		if (!destinationNode->getWrite())
-		{
-			delete targetNode;
-			delete destinationNode;
-			return -4;
+
+			if (!destinationNode->getRead())
+			{
+				delete targetNode;
+				delete destinationNode;
+				return -3;
+			}
+			if (!destinationNode->getWrite())
+			{
+				delete targetNode;
+				delete destinationNode;
+				return -4;
+			}
+
+			if (destinationNode->getType()[0] == 'f')
+			{
+				delete targetNode;
+				delete destinationNode;
+				return -5;
+			}
 		}
 		if (isNameUnique(targetNode->getName(), destinationNode));
 		{

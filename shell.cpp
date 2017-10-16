@@ -245,6 +245,9 @@ void move(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
 			case -4:
 				std::cout << "mv: " << arg2 << ": Permission to write denied\n";
 				break;
+			case -5:
+				std::cout << "mv: " << arg2 << ": Cant move to file\n";
+				break;
 
 			}
 		}
@@ -318,6 +321,8 @@ void copy(std::string commandArr[8], int nrOfCommands, FileSystem &fs)
 			case -4:
 				std::cout << "cp: " << arg2 << ": Permission to write denied\n";
 				break;
+			case -5:
+				std::cout << "cp: " << arg2 << ": Cant copy to file\n";
 
 			}
 		}
