@@ -34,9 +34,6 @@ public:
 	/*Copy target to destination*/
 	int copyTarget(char * target, char * destination);
 
-
-	bool removeFile(char* fileName, Inode* parentNode);
-
 	int remove(char* path);
 
 	void createImage(char* folderPath);
@@ -68,6 +65,7 @@ public:
 
 private:
 	// Help functions
+	bool removeFile(char* fileName, Inode* parentNode);
 
 	/* Compares all the names in the current Inode
 	Return false if name found */
