@@ -5,7 +5,10 @@ Magnus Nyqvist the princess of Malaysia airlines
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
+#define WIN 0			//MAKE TRUE TO SEE MEMORYLEAKS ON WINDOWS
+#if WIN
 #include <crtdbg.h>
+#endif
 
 #include <iostream>
 #include <sstream>
@@ -60,7 +63,10 @@ std::string help();
 /* More functions ... */
 
 int main(void) {
+#if WIN
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif // WIN
+	
 	FileSystem fs;
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "Chefen@Computer";    // Change this if you want another user to be displayed
