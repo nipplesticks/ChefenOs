@@ -259,7 +259,8 @@ int FileSystem::append(char * sFP, char * dFP)
 		if (((finalBufferIndex / 512)+1) < (destFile->getNrOfBlocks() - 2))
 		{
 			removeFile((char*)destFile->getName(), parentNode);
-			createFile((char*)destFile->getName(), finalBuffer, finalBufferIndex);
+			createFile(dFP, finalBuffer, finalBufferIndex);				// <--- OLD: destFile->getName() 
+																		// NEW: dFP, appended file is now place in the correct folder
 			result = true;
 		}
 
